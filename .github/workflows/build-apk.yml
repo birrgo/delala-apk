@@ -67,6 +67,11 @@ jobs:
                   <item name="windowActionBar">false</item>
                   <item name="windowNoTitle">true</item>
               </style>
+
+              <!-- ADDED MISSING LAUNCH THEME TO FIX BUILD ERROR -->
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:background">@drawable/splash</item>
+              </style>
           </resources>
           EOF
 
