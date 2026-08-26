@@ -26,11 +26,24 @@ jobs:
       - name: Install Android Packaging Tools
         run: |
           npm install @capacitor/core @capacitor/cli
-          # NOTE: If your PWA files are in a specific folder like 'dist' or 'build', 
-          # change '--web-dir .' to '--web-dir dist'
-          npx cap init "My App" "com.mycompany.app" --web-dir .
+          # Updated with your app name and a unique package ID
+          npx cap init "hulum Gebeya" "com.hulumgebeya.app" --web-dir .
           npm install @capacitor/android
           npx cap add android
+
+      - name: Generate App Icon from s.png
+        run: |
+          # Create the folder Capacitor expects for assets
+          mkdir -p assets
+          
+          # Copy your logo to the required filename (icon.png)
+          cp s.png assets/icon.png
+          
+          # Install the asset generator and create the Android icons
+          npm install @capacitor/assets --save-dev
+          npx capacitor-assets generate --android
+          
+          # Sync the new icons into the Android project
           npx cap sync android
 
       - name: Build the APK
@@ -42,5 +55,5 @@ jobs:
       - name: Upload APK for Download
         uses: actions/upload-artifact@v4
         with:
-          name: my-pwa-apk
+          name: hulum-gebeya-apk
           path: android/app/build/outputs/apk/debug/*.apk
