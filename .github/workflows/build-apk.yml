@@ -2,8 +2,8 @@ name: Convert PWA to APK
 
 on:
   push:
-    branches: [ main ] # Triggers the build when you push to the main branch
-  workflow_dispatch: # Allows you to trigger the build manually
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,10 +12,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (Updated to v24)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -23,27 +23,28 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Prepare Web Directory (Fixes the '.' error)
+        run: |
+          # Create a dedicated folder for Capacitor
+          mkdir www
+          # Copy your existing web files into the new www folder
+          rsync -a --exclude='.git' --exclude='.github' --exclude='www' ./ www/
+
       - name: Install Android Packaging Tools
         run: |
           npm install @capacitor/core @capacitor/cli
-          # Updated with your app name and a unique package ID
-          npx cap init "hulum Gebeya" "com.hulumgebeya.app" --web-dir .
+          # Initialize Capacitor using the new 'www' folder instead of '.'
+          npx cap init "hulum Gebeya" "com.hulumgebeya.app" --web-dir www
           npm install @capacitor/android
           npx cap add android
 
       - name: Generate App Icon from s.png
         run: |
-          # Create the folder Capacitor expects for assets
           mkdir -p assets
-          
-          # Copy your logo to the required filename (icon.png)
+          # Copies your s.png logo to be used as the app icon
           cp s.png assets/icon.png
-          
-          # Install the asset generator and create the Android icons
           npm install @capacitor/assets --save-dev
           npx capacitor-assets generate --android
-          
-          # Sync the new icons into the Android project
           npx cap sync android
 
       - name: Build the APK
