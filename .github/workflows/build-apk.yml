@@ -1,4 +1,4 @@
-name: Convert PWA to APK
+Name: Convert PWA to APK
 
 on:
   push:
@@ -79,6 +79,8 @@ jobs:
                   <item name="colorAccent">#0F2C59</item>
                   <item name="android:windowTranslucentStatus">false</item>
                   <item name="android:statusBarColor">#081B38</item>
+                  <!-- This line fixes the header overlap natively, no CSS changes needed -->
+                  <item name="android:fitsSystemWindows">true</item>
               </style>
 
               <style name="AppTheme.NoActionBar" parent="AppTheme">
