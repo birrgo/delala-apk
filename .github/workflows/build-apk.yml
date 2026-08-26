@@ -1,4 +1,4 @@
-name: Convert PWA to AAB
+Name: Convert PWA to AAB
 
 on:
   push:
@@ -94,25 +94,20 @@ jobs:
           </resources>
           EOF
 
-      - name: Decode Keystore
+      - name: Build Unsigned AAB
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
 
-      - name: Sign AAB with Android Signer
-        uses: r2da/android-sign-action@v1.4
+      - name: Sign AAB File
+        uses: r2studio/android-sign-action@v1.4
         with:
           releaseDirectory: android/app/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
-        continue-on-error: true
-
-      - name: Build AAB
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/release.keystore -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
       - name: Upload Signed AAB
         uses: actions/upload-artifact@v4
