@@ -1,0 +1,46 @@
+name: Convert PWA to APK
+
+on:
+  push:
+    branches: [ main ] # Triggers the build when you push to the main branch
+  workflow_dispatch: # Allows you to trigger the build manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Android Packaging Tools
+        run: |
+          npm install @capacitor/core @capacitor/cli
+          # NOTE: If your PWA files are in a specific folder like 'dist' or 'build', 
+          # change '--web-dir .' to '--web-dir dist'
+          npx cap init "My App" "com.mycompany.app" --web-dir .
+          npm install @capacitor/android
+          npx cap add android
+          npx cap sync android
+
+      - name: Build the APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK for Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-pwa-apk
+          path: android/app/build/outputs/apk/debug/*.apk
