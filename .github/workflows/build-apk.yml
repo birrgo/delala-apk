@@ -1,4 +1,4 @@
-name: Convert PWA to APK
+Name: Convert PWA to AAB
 
 on:
   push:
@@ -99,14 +99,14 @@ jobs:
           </resources>
           EOF
 
-      - name: Build the APK
+      - name: Build the AAB (App Bundle)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew bundleRelease
 
-      - name: Upload APK for Download
+      - name: Upload AAB for Download
         uses: actions/upload-artifact@v4
         with:
-          name: hulum-gebeya-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: hulum-gebeya-aab
+          path: android/app/build/outputs/bundle/release/*.aab
