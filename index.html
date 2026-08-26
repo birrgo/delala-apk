@@ -11,18 +11,14 @@
     <meta name="keywords" content="delala, rental ethiopia, selling ethiopia, job vacancy, online work in ethiopia, tech tips, ethiopian jobs, profile">
     <meta name="author" content="Delala">
     <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="canonical" href="https://delala.online/">
 
-    <!-- PWA Web App Manifest & Mobile Configuration -->
-    <link rel="manifest" href="manifest.json">
+    <!-- App Configuration -->
     <meta name="theme-color" content="#F8FAFC">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Delala">
-    <link rel="apple-touch-icon" href="s.png">
     <link rel="icon" type="image/png" sizes="192x192" href="s.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="s.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,14 +45,13 @@
             overflow: hidden;
         }
 
-        /* Container for Vertically Stacked Action Buttons */
+        /* Container for Action Button */
         .action-container {
             position: relative;
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
             width: 100%;
         }
 
@@ -71,7 +66,7 @@
         }
 
         /* Base Button Styles */
-        .btn-get-started, .btn-install {
+        .btn-get-started {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -89,27 +84,16 @@
             cursor: pointer;
             border: none;
             font-family: inherit;
-        }
-
-        /* Get Started Button */
-        .btn-get-started {
             background: linear-gradient(135deg, #0F172A, #1E293B);
             color: #FFFFFF;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
         }
 
-        /* Always Visible Install App Button */
-        .btn-install {
-            background: #008000;
-            color: #FFFFFF;
-            box-shadow: 0 10px 25px rgba(0, 128, 0, 0.25);
-        }
-
-        .btn-get-started:active, .btn-install:active {
+        .btn-get-started:active {
             transform: scale(0.96);
         }
 
-        .btn-get-started svg, .btn-install svg {
+        .btn-get-started svg {
             width: 22px;
             height: 22px;
             stroke: #FFFFFF;
@@ -268,8 +252,6 @@
 
     <!-- Main App UI -->
     <div class="app-view">
-        <img src="https://delala.online/s.png" alt="Delala Logo Preview" style="display:none;">
-
         <!-- Top Light Wave Gradient -->
         <svg class="bg-wave bg-wave-top" viewBox="0 0 375 200" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 0H375V75C375 75 280 155 0 95V0Z" fill="url(#paint0_linear)"/>
@@ -281,7 +263,7 @@
             </defs>
         </svg>
 
-        <!-- Stacked Buttons Container -->
+        <!-- Main Action Button Container -->
         <div class="action-container">
             <a href="rental.html" class="btn-get-started">
                 <span>Get Started</span>
@@ -290,16 +272,6 @@
                     <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
             </a>
-
-            <!-- Always visible Install App button -->
-            <button id="pwaInstallBtn" class="btn-install">
-                <span>Install App</span>
-                <svg viewBox="0 0 24 24">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-            </button>
         </div>
     </div>
 
@@ -350,7 +322,7 @@
 
 
     <!-- ==========================================
-         SCRIPTS: Connection Tracking & PWA Setup
+         SCRIPTS: Connection Tracking & App Controls
          ========================================== -->
     <script>
         // DOM Elements
@@ -412,42 +384,6 @@
             } else {
                 checkConnectionSpeed();
             }
-
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered:', reg.scope))
-                    .catch(err => console.error('Service Worker registration failed:', err));
-            }
-        });
-
-        // --- PWA Installation Logic ---
-        let deferredPrompt;
-        const installBtn = document.getElementById('pwaInstallBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to install prompt: ${outcome}`);
-                deferredPrompt = null;
-            } else {
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                if (isIOS) {
-                    alert('To install Delala on iOS: tap the Share button in Safari and select "Add to Home Screen".');
-                } else {
-                    alert('App installation prompt is not ready or the app is already installed. Use your browser menu to "Add to Home Screen".');
-                }
-            }
-        });
-
-        window.addEventListener('appinstalled', () => {
-            deferredPrompt = null;
-            console.log('Delala app installed successfully.');
         });
 
         // ==========================================
@@ -457,10 +393,8 @@
             const App = window.Capacitor.Plugins.App;
             App.addListener('backButton', ({ canGoBack }) => {
                 if (canGoBack) {
-                    // Navigate back to the previous page in the web app
                     window.history.back();
                 } else {
-                    // If there is no previous page, close the native app
                     App.exitApp();
                 }
             });
