@@ -102,14 +102,14 @@ jobs:
 
       - name: Decode Keystore Secret
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d -i > release-key.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '\n' | base64 -d -i > release-key.jks
 
       - name: Sign AAB File
         run: |
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
             -keystore release-key.jks \
             -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -keypass "${{ secrets.KEYSTORE_PASSWORD }}" \
             android/app/build/outputs/bundle/release/app-release.aab \
             ${{ secrets.KEY_ALIAS }}
 
