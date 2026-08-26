@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Delala - My Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="news.css">
+    <style>
+        /* Shared Styles Maintained */
+        .nav-header { padding: 6px 16px !important; height: 46px !important; min-height: 46px !important; display: flex; align-items: center; justify-content: space-between; }
+        .header-title-text { font-size: 16px !important; margin: 0 !important; }
+        .profile-info-section { position: relative; z-index: 5; display: flex; flex-direction: row; align-items: flex-start; gap: 14px; padding: 12px 16px 8px; text-align: left; }
+        .profile-left-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 72px; }
+        .profile-right-col { display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding-top: 2px; }
+        .avatar-container { position: relative; margin-bottom: 6px; cursor: pointer; }
+        .profile-avatar-img { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2.5px solid #FFF; box-shadow: 0 4px 12px rgba(0,0,0,0.12); background: #252830; }
+        .avatar-badge { position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: #0052FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFF; border: 2px solid #FFF; font-weight: 800; font-size: 12px; }
+        .profile-display-name { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 4px; margin-bottom: 1px; color: var(--text-dark, #0F172A); min-height: 22px; }
+        .profile-username { font-size: 12px; color: var(--text-muted, #64748B); font-weight: 600; margin-bottom: 8px; min-height: 16px; }
+        .edit-profile-pill-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 0; width: 100%; border-radius: 16px; background: #F1F5F9; border: 1px solid #CBD5E1; color: #0F172A; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .edit-profile-pill-btn:active { background: #E2E8F0; transform: scale(0.96); }
+        .edit-profile-pill-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+        .stats-metrics-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px; width: 100%; }
+        .metric-block { display: flex; flex-direction: column; align-items: center; flex: 1; transition: opacity 0.15s; }
+        .metric-block.clickable { cursor: pointer; }
+        .metric-block.clickable:active { opacity: 0.6; }
+        .metric-num { font-size: 15px; font-weight: 900; color: #0F172A; }
+        .metric-label { font-size: 10px; color: #334155; font-weight: 700; }
+        .upload-progress-card { display: none; background: #FFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px 16px; margin: 12px 16px 4px; box-shadow: 0 4px 14px rgba(15,23,42,0.06); animation: slideDown 0.3s ease; }
+        .upload-progress-card.active { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .upload-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .upload-card-title { font-size: 12px; font-weight: 800; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+        .upload-card-percent { font-size: 12px; font-weight: 800; color: #2563EB; }
+        .upload-progress-bar-bg { width: 100%; height: 8px; background: #F1F5F9; border-radius: 10px; overflow: hidden; border: 1px solid #E2E8F0; }
+        .upload-progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #2563EB, #1D4ED8); border-radius: 10px; transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .category-tabs-bar { display: flex; align-items: center; justify-content: space-around; gap: 4px; padding: 8px 12px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--border-light, #E2E8F0); }
+        .category-pill-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 10px; border-radius: 12px; background: #F1F5F9; border: 1px solid var(--border-light, #E2E8F0); color: #475569; font-size: 10px; font-weight: 700; text-decoration: none; transition: all 0.2s ease; cursor: pointer; flex: 1; min-width: 52px; }
+        .category-pill-btn:active { transform: scale(0.95); }
+        .category-pill-btn.active { background: var(--metallic-sheen, #1E293B); color: #FFF; border-color: var(--primary-burgundy, #0F172A); box-shadow: 0 3px 8px rgba(37,40,48,0.2); }
+        .category-pill-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; flex-shrink: 0; }
+        
+        /* Iframe Styles */
+        .posts-iframe-container { width: 100%; min-height: 50vh; display: block; border: none; background: var(--border-light, #E2E8F0); }
+        
+        .menu-wrapper { position: relative; display: inline-block; }
+        .menu-action-btn { background: transparent; border: none; color: #0F172A; padding: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: background-color 0.2s ease; }
+        .menu-action-btn:active { background-color: #F1F5F9; }
+        .menu-action-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+        .profile-menu-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #FFF; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); min-width: 190px; padding: 6px; display: none; flex-direction: column; gap: 2px; z-index: 1050; }
+        .profile-menu-dropdown.show { display: flex; }
+        .dropdown-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; transition: background 0.15s ease; text-decoration: none; box-sizing: border-box; color: #0F172A; }
+        .dropdown-menu-item:active { background: #F1F5F9; }
+        .dropdown-menu-item.logout-item { color: #DC2626; }
+        .dropdown-menu-item.logout-item:active { background: #FEF2F2; }
+        .dropdown-menu-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .toggle-switch { width: 34px; height: 20px; background: #CBD5E1; border-radius: 20px; position: relative; transition: background 0.3s; flex-shrink: 0; pointer-events: none; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #FFF; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .toggle-switch.on { background: #10B981; }
+        .toggle-switch.on::after { transform: translateX(14px); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-around; background: #FFF; padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid #E2E8F0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #64748B; font-size: 11px; font-weight: 600; flex: 1; text-align: center; }
+        .nav-item.active { color: #0F172A; }
+        .nav-item .icon-bg svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .nav-item-post-center { position: relative; top: -14px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; z-index: 1010; }
+        .post-fab-btn { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #1E293B, #334155); box-shadow: 0 6px 16px rgba(0,0,0,0.15), 0 0 0 5px #FFF; display: flex; align-items: center; justify-content: center; color: #FFF; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; }
+        .post-fab-btn:active { transform: scale(0.92); }
+        .post-fab-btn svg { width: 22px; height: 22px; stroke: #FFF; stroke-width: 2.8; }
+        .post-fab-label { margin-top: 3px; font-size: 10px; font-weight: 700; color: #334155; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.75); backdrop-filter: blur(4px); z-index: 100000; align-items: center; justify-content: center; padding: 16px; }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: #FFF; border-radius: 20px; max-width: 440px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.25); overflow: hidden; animation: modalPop 0.25s cubic-bezier(0.16,1,0.3,1); }
+        @keyframes modalPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #E2E8F0; }
+        .modal-header h3 { margin: 0; font-size: 15px; font-weight: 800; color: #0F172A; }
+        .modal-close-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748B; font-weight: 700; }
+        .modal-body { padding: 16px 20px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .preview-section { background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid #E2E8F0; }
+        .preview-section-title { font-size: 10px; font-weight: 800; color: #64748B; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+        .preview-map-box { width: 100%; height: 160px; border-radius: 10px; margin-top: 8px; border: 1px solid #E2E8F0; overflow: hidden; }
+        .delete-post-btn { background: #DC2626; color: #FFF; border: none; padding: 12px 16px; border-radius: 10px; font-weight: 800; font-size: 13px; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.1s; box-shadow: 0 2px 6px rgba(220,38,38,0.2); }
+        .delete-post-btn:active { background: #991B1B; transform: scale(0.98); }
+        .delete-post-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+        .verify-icon-wrapper { width: 48px; height: 48px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; border: 1px solid #FEE2E2; }
+        .verify-icon-wrapper svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+        .verify-subtitle { font-size: 12px; color: #64748B; text-align: center; line-height: 1.5; margin: 0 0 12px; font-weight: 500; }
+        .verify-input-group { display: flex; flex-direction: column; gap: 6px; }
+        .verify-input-label { font-size: 11px; font-weight: 700; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px; }
+        .verify-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #CBD5E1; font-family: inherit; font-size: 16px; font-weight: 700; color: #0F172A; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; background: #FFF; text-align: center; letter-spacing: 4px; }
+        .verify-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        .verify-error-msg { color: #DC2626; font-size: 11px; font-weight: 700; text-align: center; display: none; margin-top: 4px; background: #FEF2F2; padding: 8px; border-radius: 8px; border: 1px solid #FEE2E2; }
+        .verify-btn-group { display: flex; gap: 10px; margin-top: 8px; }
+        .btn-secondary { flex: 1; background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center; transition: background 0.15s; }
+        .btn-secondary:active { background: #E2E8F0; }
+        .btn-danger { flex: 1; background: #DC2626; color: #FFF; border: none; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; text-align: center; box-shadow: 0 2px 6px rgba(220,38,38,0.2); transition: background 0.15s; }
+        .btn-danger:active { background: #991B1B; }
+        .auth-prompt-card { text-align: center; padding: 8px; }
+        .auth-prompt-icon { width: 56px; height: 56px; border-radius: 50%; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+        .auth-prompt-icon svg { width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .auth-btn-primary { width: 100%; background: #0F172A; color: #FFF; border: none; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; text-decoration: none; display: block; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
+        .auth-btn-secondary { width: 100%; background: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; text-decoration: none; display: block; margin-top: 8px; }
+        .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-30px); background: #0F172A; color: #FFF; padding: 10px 20px; border-radius: 30px; font-size: 12px; font-weight: 700; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 200000; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="toast-notification" id="toastNotification"><span id="toastMessage">Action completed successfully</span></div>
+
+    <div class="app-view">
+        <header class="nav-header">
+            <h1 class="header-title-text">Profile</h1>
+            <div class="header-left-group" style="justify-content: flex-end; display: flex; align-items: center; gap: 8px;">
+                <div class="header-live-clock-badge" id="topCornerLiveClock">--:--:--</div>
+                <div class="menu-wrapper">
+                    <button class="menu-action-btn" id="openMenuBtn" aria-label="Open Menu">
+                        <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+                    </button>
+                    <!-- 3-Dot Dropdown -->
+                    <div class="profile-menu-dropdown" id="profileMenuDropdown">
+                        <div class="dropdown-menu-item" id="togglePrivacyBtn" style="justify-content: space-between;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <span>Public Network</span>
+                            </div>
+                            <div class="toggle-switch on" id="privacySwitch"></div>
+                        </div>
+                        <hr style="border:none; border-top:1px solid #E2E8F0; margin:2px 0;">
+                        <a href="broker.html" class="dropdown-menu-item" id="brokerMenuBtn">
+                            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                            <span>Broker Portal</span>
+                        </a>
+                        <a href="usera.html" class="dropdown-menu-item payment-item">
+                            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                            <span>Payment</span>
+                        </a>
+                        <button class="dropdown-menu-item logout-item" id="logoutBtn">
+                            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-content" style="padding: 0 0 85px 0;">
+            <div class="upload-progress-card" id="uploadProgressCard">
+                <div class="upload-card-header">
+                    <span class="upload-card-title" id="uploadCardTitle">Publishing Listing...</span>
+                    <span class="upload-card-percent" id="uploadProgressPercent">0%</span>
+                </div>
+                <div class="upload-progress-bar-bg"><div class="upload-progress-bar-fill" id="uploadProgressFill"></div></div>
+            </div>
+
+            <!-- Profile Info Section -->
+            <section class="profile-info-section">
+                <div class="profile-left-col">
+                    <div class="avatar-container" id="avatarClickGroup" onclick="window.location.href='edit.html'">
+                        <img src="s.png" alt="Profile" class="profile-avatar-img" id="userAvatarImg">
+                        <div class="avatar-badge">+</div>
+                    </div>
+                    <button type="button" class="edit-profile-pill-btn" onclick="window.location.href='edit.html'">
+                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2-2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Edit</span>
+                    </button>
+                </div>
+
+                <div class="profile-right-col">
+                    <h1 class="profile-display-name" id="userDisplayName">User</h1>
+                    <p class="profile-username" id="userHandle">@user</p>
+
+                    <div class="stats-metrics-row">
+                        <div class="metric-block clickable" id="followingBlock"><span class="metric-num" id="followingCount">0</span><span class="metric-label">Following</span></div>
+                        <div class="metric-block clickable" id="followersBlock"><span class="metric-num" id="followersCount">0</span><span class="metric-label">Followers</span></div>
+                        <div class="metric-block"><span class="metric-num" id="likesCount">0</span><span class="metric-label">Likes</span></div>
+                        <div class="metric-block"><span class="metric-num" id="ratingCount">4.9 ★</span><span class="metric-label">Rating</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation Tabs Bar with Targets -->
+            <nav class="category-tabs-bar" aria-label="Profile Navigation Filter">
+                <button type="button" class="category-pill-btn active" data-category="all" data-src="all.html">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                    <span>All</span>
+                </button>
+                <button type="button" class="category-pill-btn" data-category="activity" data-src="active.html">
+                    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>Activity</span>
+                </button>
+                <button type="button" class="category-pill-btn" data-category="chat" data-src="chat.html">
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    <span>Chat</span>
+                </button>
+                <button type="button" class="category-pill-btn" data-category="app" data-src="app.html">
+                    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
+                    <span>App</span>
+                </button>
+                <button type="button" class="category-pill-btn" data-category="hidden" data-src="hidden.html">
+                    <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    <span>Hidden</span>
+                </button>
+            </nav>
+
+            <!-- Replaced Grid with Iframe -->
+            <iframe id="postsIframe" src="all.html" class="posts-iframe-container"></iframe>
+        </div>
+
+        <nav class="bottom-nav">
+            <a id="nav-rental" href="rental.html" class="nav-item"><div class="icon-bg"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div><span>Rental</span></a>
+            <a id="nav-selling" href="selling.html" class="nav-item"><div class="icon-bg"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></div><span>Selling</span></a>
+            <a id="nav-post" href="rentalpost.html" class="nav-item-post-center" aria-label="Post Item"><div class="post-fab-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div><span class="post-fab-label">Post</span></a>
+            <a id="nav-service" href="service.html" class="nav-item"><div class="icon-bg"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div><span>Service</span></a>
+            <a id="nav-profile" href="profile.html" class="nav-item active"><div class="icon-bg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><span>Profile</span></a>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="authPromptModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Account Required</h3>
+                <button type="button" class="modal-close-btn" id="closeAuthModalBtn">✕</button>
+            </div>
+            <div class="modal-body auth-prompt-card">
+                <div class="auth-prompt-icon">
+                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <h4 style="font-size:16px; font-weight:800; color:#0F172A; margin:0 0 6px;">Sign in to Delala</h4>
+                <p style="color:#64748B; font-size:12px; margin:0 0 18px; line-height:1.4;">Please log in or create a new account to view profile posts, manage listings, and upload content.</p>
+                <a href="login.html" class="auth-btn-primary">Log In</a>
+                <a href="register.html" class="auth-btn-secondary">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="postPreviewModal">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Post Details</h3><button type="button" class="modal-close-btn" id="closePreviewModalBtn">✕</button></div>
+            <div class="modal-body" id="modalPreviewBody"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="verifyDeleteModal">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Verify Deletion</h3><button type="button" class="modal-close-btn" id="closeVerifyModalBtn">✕</button></div>
+            <div class="modal-body">
+                <div class="verify-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                <p class="verify-subtitle">Enter your registered <strong>6-digit Security PIN</strong> to delete this post.</p>
+                <div class="verify-input-group">
+                    <label class="verify-input-label" for="verifyPhonePinInput">Security PIN</label>
+                    <input type="password" id="verifyPhonePinInput" class="verify-input" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="••••••" autocomplete="off" />
+                </div>
+                <div class="verify-error-msg" id="verifyErrorMsg">Verification failed. Incorrect PIN code.</div>
+                <div class="verify-btn-group">
+                    <button type="button" class="btn-secondary" id="cancelVerifyBtn">Cancel</button>
+                    <button type="button" class="btn-danger" id="confirmDeleteBtn">Delete Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get, push, set, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // EXPOSE TO GLOBAL FOR IFRAMES TO ACCESS
+        window.allUserPosts = [];
+        window.formatCount = formatCount;
+        window.openPreviewModal = openPreviewModal;
+
+        const primaryConfig = { 
+            apiKey: "AIzaSyBXoIY6Q1Cf3Dw0jU5VImIqxchW79OME6Q", 
+            authDomain: "delala-1b582.firebaseapp.com", 
+            databaseURL: "https://delala-1b582-default-rtdb.firebaseio.com", 
+            projectId: "delala-1b582", 
+            storageBucket: "delala-1b582.firebasestorage.app", 
+            messagingSenderId: "1073041850834", 
+            appId: "1:1073041850834:web:fe5d0095c3ff1b238f480b", 
+            measurementId: "G-2XW8F8FKBT" 
+        };
+        const app = initializeApp(primaryConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        const serviceDbConfig = {
+            apiKey: "AIzaSyD6vEll_UDNulGF5BalpwhR3SbfME7CJCw",
+            authDomain: "tsestlive.firebaseapp.com",
+            databaseURL: "https://tsestlive-default-rtdb.firebaseio.com",
+            projectId: "tsestlive"
+        };
+        const serviceApp = initializeApp(serviceDbConfig, "ServiceApp");
+        const serviceDb = getDatabase(serviceApp);
+
+        let previewMapInstance = null;
+        let myLoggedInUid = null;
+        let postsUnsubscribe = null, servicePostsUnsubscribe = null, isUploadingActive = false, 
+            pendingPostToDelete = null, isLoggedInUser = false;
+        let primaryPosts = [];
+        let servicePosts = [];
+
+        async function hashPin(pin) {
+            const data = new TextEncoder().encode(pin);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function hydrateCachedProfile() {
+            const cachedUser = localStorage.getItem('delala_cached_profile');
+            if (!cachedUser || localStorage.getItem('user_logged_out') === 'true') return false;
+            try { applyProfileToDOM(JSON.parse(cachedUser)); isLoggedInUser = true; return true; } catch (e) { return false; }
+        }
+
+        function applyProfileToDOM(userData) {
+            let firstName = userData.firstName || userData.first_name || "", middleName = userData.middleName || userData.middle_name || userData.fatherName || "";
+            if (!firstName && userData.fullName) { const parts = userData.fullName.trim().split(/\s+/); firstName = parts[0] || ""; middleName = parts[1] || ""; }
+
+            const displayName = `${firstName} ${middleName}`.trim() || userData.displayName || "User";
+            const handle = userData.username || userData.handle || (firstName ? firstName.toLowerCase() : "user");
+            
+            document.getElementById('userDisplayName').innerText = displayName;
+            document.getElementById('userHandle').innerText = "@" + handle.replace(/^@/, '');
+            if (userData.photoURL || userData.profilePicture) document.getElementById('userAvatarImg').src = userData.photoURL || userData.profilePicture;
+
+            document.getElementById('followingCount').innerText = formatCount(userData.following || 0);
+            document.getElementById('followersCount').innerText = formatCount(userData.followers || 0);
+            document.getElementById('ratingCount').innerText = (userData.rating || "0.0") + " ★";
+            
+            const privacySwitch = document.getElementById('privacySwitch');
+            if (userData.hasOwnProperty('isNetworkPublic')) {
+                if (userData.isNetworkPublic) privacySwitch.classList.add('on');
+                else privacySwitch.classList.remove('on');
+            } else {
+                privacySwitch.classList.add('on'); 
+            }
+        }
+
+        hydrateCachedProfile();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupAuthListener(); 
+            setupMenuHandlers(); 
+            setupModalHandlers(); 
+            setupVerifyModalHandlers(); 
+            setupCategoryFilterButtons(); 
+            setupAuthPromptEvents();
+            
+            requestAnimationFrame(() => {
+                initLiveClock();
+                checkAndRunPendingUpload();
+            });
+        });
+
+        function showAuthModal() {
+            const overlay = document.getElementById('authPromptModal');
+            if (overlay) { overlay.classList.add('active'); overlay.style.display = 'flex'; }
+        }
+
+        function closeAuthModal() {
+            const overlay = document.getElementById('authPromptModal');
+            if (overlay) { overlay.classList.remove('active'); overlay.style.display = 'none'; }
+        }
+
+        function setupAuthPromptEvents() {
+            document.getElementById('closeAuthModalBtn')?.addEventListener('click', closeAuthModal);
+            document.getElementById('authPromptModal')?.addEventListener('click', (e) => { if (e.target.id === 'authPromptModal') closeAuthModal(); });
+            document.getElementById('nav-post')?.addEventListener('click', (e) => { if (!isLoggedInUser) { e.preventDefault(); showAuthModal(); } });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').innerText = message; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function checkAndRunPendingUpload() {
+            if (isUploadingActive) return;
+            const rawTask = localStorage.getItem('delalaActiveUpload');
+            if (!rawTask) return;
+            localStorage.removeItem('delalaActiveUpload');
+            isUploadingActive = true;
+
+            let uploadTask;
+            try { uploadTask = JSON.parse(rawTask); } catch(e) { isUploadingActive = false; return; }
+
+            const card = document.getElementById('uploadProgressCard'), fill = document.getElementById('uploadProgressFill'), percent = document.getElementById('uploadProgressPercent'), title = document.getElementById('uploadCardTitle');
+            if (!card || !uploadTask.payload) { isUploadingActive = false; return; }
+
+            card.classList.add('active');
+            title.innerText = uploadTask.payload.title ? `Publishing: ${uploadTask.payload.title}` : "Publishing Listing...";
+
+            let progress = 5, hasUploaded = false;
+            fill.style.width = `${progress}%`; percent.innerText = `${progress}%`;
+
+            const progressTimer = setInterval(async () => {
+                progress += Math.floor(Math.random() * 15) + 8;
+                if (progress >= 100) {
+                    progress = 100; clearInterval(progressTimer);
+                    if (hasUploaded) return;
+                    hasUploaded = true;
+                    fill.style.width = '100%'; percent.innerText = '100%';
+                    try {
+                        const postCategory = uploadTask.payload.rentalType || uploadTask.payload.category || "Rental";
+                        const targetDbRef = (postCategory.toLowerCase() === 'service') ? serviceDb : db;
+                        const newPostRef = push(ref(targetDbRef, 'posts'));
+                        
+                        await set(newPostRef, { ...uploadTask.payload, id: newPostRef.key, category: postCategory, isHidden: false });
+                        
+                        title.innerText = "Published Successfully!";
+                        showToast("Listing published successfully!");
+                        setTimeout(() => { card.classList.remove('active'); isUploadingActive = false; }, 1200);
+                    } catch (error) {
+                        title.innerText = "Upload Failed. Please try again."; percent.innerText = "Error"; isUploadingActive = false;
+                        showToast("Upload failed. Please try again.");
+                    }
+                } else {
+                    fill.style.width = `${progress}%`; percent.innerText = `${progress}%`;
+                }
+            }, 250);
+        }
+
+        function setupCategoryFilterButtons() {
+            document.querySelectorAll('.category-tabs-bar .category-pill-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!isLoggedInUser) { showAuthModal(); return; }
+                    
+                    const category = btn.getAttribute('data-category');
+                    const targetSrc = btn.getAttribute('data-src');
+
+                    // Navigate if it's an external page
+                    if (['chat', 'app', 'activity'].includes(category) && targetSrc) {
+                        window.location.href = targetSrc;
+                        return;
+                    }
+
+                    // Otherwise switch the iframe contents
+                    document.querySelectorAll('.category-tabs-bar .category-pill-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    if(targetSrc) {
+                        document.getElementById('postsIframe').src = targetSrc;
+                    }
+                });
+            });
+        }
+
+        function setupModalHandlers() {
+            const previewOverlay = document.getElementById('postPreviewModal');
+            document.getElementById('closePreviewModalBtn').addEventListener('click', closePreviewModal);
+            previewOverlay.addEventListener('click', (e) => { if (e.target === previewOverlay) closePreviewModal(); });
+            
+            document.getElementById('followingBlock').addEventListener('click', () => {
+                if (!isLoggedInUser || !myLoggedInUid) { showAuthModal(); return; }
+                window.location.href = `follow.html?type=following`;
+            });
+            document.getElementById('followersBlock').addEventListener('click', () => {
+                if (!isLoggedInUser || !myLoggedInUid) { showAuthModal(); return; }
+                window.location.href = `follow.html?type=followers`;
+            });
+        }
+
+        function closePreviewModal() {
+            const overlay = document.getElementById('postPreviewModal');
+            overlay.classList.remove('active'); overlay.style.display = 'none';
+            if (previewMapInstance) { previewMapInstance.remove(); previewMapInstance = null; }
+        }
+
+        function setupVerifyModalHandlers() {
+            const overlay = document.getElementById('verifyDeleteModal'), inputField = document.getElementById('verifyPhonePinInput');
+            document.getElementById('closeVerifyModalBtn').addEventListener('click', closeVerifyModal);
+            document.getElementById('cancelVerifyBtn').addEventListener('click', closeVerifyModal);
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeVerifyModal(); });
+            document.getElementById('confirmDeleteBtn').addEventListener('click', executePostDeletion);
+            inputField.addEventListener('keydown', (e) => { if (e.key === 'Enter') executePostDeletion(); });
+        }
+
+        function openVerifyModal(post) {
+            pendingPostToDelete = post;
+            const overlay = document.getElementById('verifyDeleteModal'), inputField = document.getElementById('verifyPhonePinInput');
+            inputField.value = ''; document.getElementById('verifyErrorMsg').style.display = 'none';
+            overlay.classList.add('active'); overlay.style.display = 'flex';
+            setTimeout(() => inputField.focus(), 150);
+        }
+
+        function closeVerifyModal() {
+            const overlay = document.getElementById('verifyDeleteModal');
+            overlay.classList.remove('active'); overlay.style.display = 'none';
+            pendingPostToDelete = null;
+        }
+
+        async function executePostDeletion() {
+            if (!pendingPostToDelete) return;
+            const inputField = document.getElementById('verifyPhonePinInput'), errorMsg = document.getElementById('verifyErrorMsg'), confirmBtn = document.getElementById('confirmDeleteBtn'), inputVal = inputField.value.trim();
+
+            if (!inputVal || !/^\d{6}$/.test(inputVal)) {
+                errorMsg.innerText = "Please enter your valid 6-digit Security PIN."; errorMsg.style.display = 'block'; return;
+            }
+
+            const activePhone = localStorage.getItem('auth_session_phone') || myLoggedInUid;
+            if (!activePhone) {
+                errorMsg.innerText = "User session expired. Please log in again."; errorMsg.style.display = 'block'; return;
+            }
+
+            const cleanPhone = String(activePhone).replace(/\D/g, '').replace(/^0+/, '');
+            try {
+                confirmBtn.disabled = true; confirmBtn.innerText = "Verifying..."; errorMsg.style.display = 'none';
+                let userRef = ref(db, `users/${cleanPhone}`), snapshot = await get(userRef);
+
+                if (!snapshot.exists() && myLoggedInUid) { snapshot = await get(ref(db, `users/${myLoggedInUid}`)); }
+                if (!snapshot.exists()) { errorMsg.innerText = "User profile not found. Please log in again."; errorMsg.style.display = 'block'; return; }
+
+                const userData = snapshot.val(), storedPinHash = userData.securityPin || userData.pin || '', enteredPinHash = await hashPin(inputVal);
+
+                if (storedPinHash !== enteredPinHash && storedPinHash !== inputVal) {
+                    errorMsg.innerText = "Incorrect Security PIN code."; errorMsg.style.display = 'block'; return;
+                }
+
+                confirmBtn.innerText = "Deleting...";
+                const targetDatabase = pendingPostToDelete._dbSource === 'service' ? serviceDb : db;
+                await remove(ref(targetDatabase, `posts/${pendingPostToDelete.id}`));
+
+                closeVerifyModal(); closePreviewModal(); showToast("Post deleted successfully!");
+            } catch (err) {
+                errorMsg.innerText = "Failed to delete post: " + (err.message || "Network error"); errorMsg.style.display = 'block';
+            } finally {
+                confirmBtn.disabled = false; confirmBtn.innerText = "Delete Post";
+            }
+        }
+
+        function initLiveClock() {
+            const clockNode = document.getElementById('topCornerLiveClock');
+            if (!clockNode) return;
+            const updateTime = () => clockNode.innerText = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toLowerCase();
+            updateTime(); setInterval(updateTime, 1000);
+        }
+
+        function setupMenuHandlers() {
+            const menuBtn = document.getElementById('openMenuBtn'), dropdown = document.getElementById('profileMenuDropdown');
+            menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('show'); });
+            
+            document.addEventListener('click', (e) => { 
+                if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) dropdown.classList.remove('show'); 
+            });
+            
+            document.getElementById('brokerMenuBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!isLoggedInUser) {
+                    showAuthModal();
+                    dropdown.classList.remove('show');
+                } else {
+                    window.location.href = 'broker.html';
+                }
+            });
+
+            const privacyBtn = document.getElementById('togglePrivacyBtn');
+            const privacySwitch = document.getElementById('privacySwitch');
+            
+            privacyBtn.addEventListener('click', async (e) => {
+                e.stopPropagation(); 
+                if (!isLoggedInUser || !myLoggedInUid) return;
+                
+                const isCurrentlyOn = privacySwitch.classList.contains('on');
+                const newValue = !isCurrentlyOn;
+                
+                if(newValue) privacySwitch.classList.add('on');
+                else privacySwitch.classList.remove('on');
+                
+                try {
+                    await update(ref(db, `users/${myLoggedInUid}`), { isNetworkPublic: newValue });
+                    showToast(`Network visibility is now ${newValue ? 'Public' : 'Private'}`);
+                } catch(err) {
+                    if(!newValue) privacySwitch.classList.add('on');
+                    else privacySwitch.classList.remove('on');
+                    showToast("Failed to update privacy settings.");
+                }
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                try {
+                    localStorage.setItem('user_logged_out', 'true'); 
+                    localStorage.removeItem('auth_session_phone'); 
+                    localStorage.removeItem('delala_cached_profile');
+                    localStorage.removeItem('delala_cached_posts');
+                    sessionStorage.clear(); 
+                    await signOut(auth);
+                } catch (error) {} finally { window.location.href = 'rental.html'; }
+            });
+        }
+
+        function formatCount(count) {
+            const num = parseInt(count) || 0;
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        function renderLoggedOutGuestState() {
+            isLoggedInUser = false;
+            localStorage.removeItem('delala_cached_profile');
+            
+            if (document.getElementById('userDisplayName')) document.getElementById('userDisplayName').innerText = 'Guest User';
+            document.getElementById('userHandle').innerText = "@guest";
+            document.getElementById('userAvatarImg').src = 's.png';
+            document.getElementById('followingCount').innerText = '0';
+            document.getElementById('followersCount').innerText = '0';
+            document.getElementById('likesCount').innerText = '0';
+            document.getElementById('ratingCount').innerText = '0.0 ★';
+            
+            window.allUserPosts = [];
+            
+            // Reload the iframe to update the empty state
+            const iframe = document.getElementById('postsIframe');
+            if (iframe && iframe.contentWindow && iframe.contentWindow.renderGrid) {
+                iframe.contentWindow.renderGrid();
+            }
+            
+            showAuthModal();
+        }
+
+        function evaluateAuthState(user) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetProfileId = urlParams.get('id') || urlParams.get('userId');
+            const sessionPhone = localStorage.getItem('auth_session_phone');
+            const sessionUid = localStorage.getItem('auth_session_user_id');
+            
+            if (user) myLoggedInUid = user.uid;
+            else if (sessionUid) myLoggedInUid = sessionUid;
+            else if (sessionPhone) myLoggedInUid = sessionPhone.replace(/\D/g, '').replace(/^0+/, '');
+
+            if (myLoggedInUid) {
+                isLoggedInUser = true;
+                localStorage.removeItem('user_logged_out');
+            } else {
+                isLoggedInUser = false;
+            }
+
+            if (targetProfileId && targetProfileId !== myLoggedInUid && !String(sessionPhone).includes(targetProfileId)) {
+                window.location.replace(`user.html?id=${targetProfileId}`);
+                return;
+            }
+
+            if (myLoggedInUid) {
+                fetchUserDataAndPosts(myLoggedInUid);
+            } else {
+                renderLoggedOutGuestState();
+            }
+        }
+
+        function setupAuthListener() {
+            onAuthStateChanged(auth, evaluateAuthState);
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'auth_session_phone' || e.key === 'user_logged_out') evaluateAuthState(auth.currentUser);
+            });
+        }
+
+        function fetchUserDataAndPosts(userId) {
+            get(ref(db, `users/${userId}`)).then((snapshot) => {
+                if (snapshot.exists()) { 
+                    applyProfileToDOM(snapshot.val());
+                    localStorage.setItem('delala_cached_profile', JSON.stringify(snapshot.val()));
+                } else if (auth.currentUser) {
+                    const fallbackProfile = { displayName: auth.currentUser.displayName || "User", photoURL: auth.currentUser.photoURL || 's.png', following: 0, followers: 0 };
+                    applyProfileToDOM(fallbackProfile);
+                    localStorage.setItem('delala_cached_profile', JSON.stringify(fallbackProfile));
+                } else {
+                    renderLoggedOutGuestState();
+                }
+            }).catch(() => { });
+            
+            fetchPostsForUser(userId);
+        }
+
+        function fetchPostsForUser(userId) {
+            if (postsUnsubscribe) postsUnsubscribe();
+            if (servicePostsUnsubscribe) servicePostsUnsubscribe();
+
+            const isPostBelongingToUser = (post) => {
+                if (!post) return false;
+                const pUserId = String(post.userId || post.uid || post.user_id || '');
+                return pUserId === String(userId) || (post.postedByPhone && post.postedByPhone.includes(userId));
+            };
+
+            const parseTimestamp = (p) => {
+                const val = p.timestamp || p.createdAt || p.dateCreated || p.time || 0;
+                if (!val) return 0;
+                const num = Number(val);
+                if (!isNaN(num) && num > 0) return num;
+                return isNaN(new Date(val).getTime()) ? 0 : new Date(val).getTime();
+            };
+
+            const updateGrid = () => {
+                let postsList = [...primaryPosts, ...servicePosts];
+                postsList.sort((a, b) => parseTimestamp(b) - parseTimestamp(a));
+                
+                let totalLikes = 0;
+                postsList.forEach(item => totalLikes += (parseInt(item.likesCount) || parseInt(item.likes) || 0));
+                document.getElementById('likesCount').innerText = formatCount(totalLikes);
+                
+                // Expose to window for the child iframes to read
+                window.allUserPosts = postsList;
+                
+                // Tell the currently visible iframe to re-render
+                const iframe = document.getElementById('postsIframe');
+                if (iframe && iframe.contentWindow && iframe.contentWindow.renderGrid) {
+                    iframe.contentWindow.renderGrid();
+                }
+            };
+            
+            postsUnsubscribe = onValue(ref(db, 'posts'), (snapshot) => {
+                primaryPosts = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach(c => {
+                        if (isPostBelongingToUser(c.val())) primaryPosts.push({ id: c.key, _dbSource: 'primary', ...c.val() });
+                    });
+                }
+                updateGrid();
+            });
+
+            servicePostsUnsubscribe = onValue(ref(serviceDb, 'posts'), (snapshot) => {
+                servicePosts = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach(c => {
+                        if (isPostBelongingToUser(c.val())) servicePosts.push({ id: c.key, _dbSource: 'service', ...c.val() });
+                    });
+                }
+                updateGrid();
+            });
+        }
+
+        function openPreviewModal(post) {
+            const modalBody = document.getElementById('modalPreviewBody'),
+                  images = post.images || (post.imageUrl ? [post.imageUrl] : []),
+                  imagesHTML = images.length > 0 ? `<div class="preview-section"><div class="preview-section-title">ATTACHED IMAGES</div><div style="display:flex; gap:8px; overflow-x:auto; padding-top:4px;">${images.map(img => `<img src="${img}" style="width:72px; height:72px; border-radius:10px; object-fit:cover; border:1px solid #E2E8F0;">`).join('')}</div></div>` : '',
+                  loc = post.locationDetails || {}, contact = post.contactInfo || {};
+
+            const isHidden = post.isHidden === true;
+            const hideBtnText = isHidden ? 'Unhide Post' : 'Hide Post';
+            const hideBtnIcon = isHidden ? 
+                `<svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.2;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>` : 
+                `<svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.2;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+            modalBody.innerHTML = `
+                ${imagesHTML}
+                <div class="preview-section">
+                    <div class="preview-section-title">LISTING DETAILS</div>
+                    <div style="font-size:14px; font-weight:800; color:#0F172A;">${post.title || 'Untitled Listing'}</div>
+                    <div style="font-size:13px; font-weight:800; color:#2563EB; margin-top:2px;">${post.price ? post.price + ' ETB' + (post.paymentPeriod ? ' / ' + post.paymentPeriod : '') : 'Price Negotiable'}</div>
+                    <p style="margin:6px 0 0; color:#64748B; font-size:11px; line-height:1.4;">${post.body || post.description || 'No description provided.'}</p>
+                </div>
+                ${(loc.city || post.location) ? `<div class="preview-section"><div class="preview-section-title">LOCATION DETAILS</div>${loc.city ? `<div style="font-weight:700; color:#0F172A;">${loc.city}, ${loc.region || ''} (${loc.country || ''})</div>` : ''}${loc.zone ? `<div style="color:#64748B; margin-top:2px;">${loc.zone} • ${loc.subcity || ''}</div>` : ''}${loc.uniqueName ? `<div style="color:#64748B; font-style:italic;">Landmark: ${loc.uniqueName}</div>` : ''}${post.location ? `<div id="userPreviewMap" class="preview-map-box"></div>` : ''}</div>` : ''}
+                <div class="preview-section">
+                    <div class="preview-section-title">CONTACT INFORMATION</div>
+                    ${contact.phone || post.phone || post.postedByPhone ? `<div>📞 Phone: <strong>${contact.phone || post.phone || post.postedByPhone}</strong></div>` : ''}
+                    ${contact.telegram ? `<div>✈️ Telegram: <strong>${contact.telegram}</strong></div>` : ''}
+                    ${contact.whatsapp ? `<div>💬 WhatsApp: <strong>${contact.whatsapp}</strong></div>` : ''}
+                    ${contact.email ? `<div>✉️ Email: <strong>${contact.email}</strong></div>` : ''}
+                    ${contact.instagram ? `<div>📷 Instagram: <strong>${contact.instagram}</strong></div>` : ''}
+                </div>
+                
+                <div class="preview-section" style="border-color: #CBD5E1; background: #F8FAFC; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <button type="button" class="btn-secondary" id="editPostBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; color: #0F172A; border: 1px solid #CBD5E1;">
+                        <svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.2;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Edit Post</span>
+                    </button>
+                    <button type="button" class="btn-secondary" id="hidePostBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; color: #0F172A; border: 1px solid #CBD5E1;">
+                        ${hideBtnIcon}
+                        <span>${hideBtnText}</span>
+                    </button>
+                </div>
+
+                <div class="preview-section" style="border-color: #FEE2E2; background: #FEF2F2;">
+                    <button type="button" class="delete-post-btn" id="deletePostBtn">
+                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Delete Post</span>
+                    </button>
+                </div>
+            `;
+
+            const previewModal = document.getElementById('postPreviewModal');
+            previewModal.classList.add('active'); previewModal.style.display = 'flex';
+            
+            document.getElementById('deletePostBtn')?.addEventListener('click', () => openVerifyModal(post));
+            document.getElementById('editPostBtn')?.addEventListener('click', () => window.location.href = `edit1.html?postId=${post.id}&db=${post._dbSource || 'primary'}`);
+            document.getElementById('hidePostBtn')?.addEventListener('click', async () => {
+                const targetDatabase = post._dbSource === 'service' ? serviceDb : db;
+                try {
+                    await update(ref(targetDatabase, `posts/${post.id}`), { isHidden: !isHidden });
+                    showToast(isHidden ? "Post unhidden successfully!" : "Post hidden successfully!");
+                    closePreviewModal();
+                } catch (err) { showToast("Failed to update post status."); }
+            });
+
+            if (post.location && post.location.latitude && post.location.longitude) {
+                setTimeout(() => initPreviewMap(post.location.latitude, post.location.longitude), 200);
+            }
+        }
+
+        function initPreviewMap(lat, lng) {
+            if (previewMapInstance) previewMapInstance.remove();
+            previewMapInstance = L.map('userPreviewMap', { attributionControl: false, zoomControl: false, dragging: false, scrollWheelZoom: false, touchZoom: false }).setView([lat, lng], 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(previewMapInstance);
+            L.marker([lat, lng]).addTo(previewMapInstance);
+        }
+    </script>
+</body>
+</html>

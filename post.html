@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hulum - Select Category to Post</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="news.css">
+    <style>
+        /* Category Selection Grid Styles */
+        .category-selection-container {
+            margin-top: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .category-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: var(--card-shadow, 0 4px 12px rgba(0,0,0,0.05));
+            border: 1px solid var(--border-light, #E2E8F0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+
+        .category-card:active {
+            transform: scale(0.98);
+            border-color: #0F172A;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .category-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0F172A;
+            flex-shrink: 0;
+        }
+
+        .category-icon-box svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .category-text-details h3 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0F172A;
+            margin: 0 0 3px 0;
+        }
+
+        .category-text-details p {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748B;
+            margin: 0;
+        }
+
+        .arrow-action-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: #94A3B8;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        /* Standardized Light Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: #FFFFFF;
+            padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid #E2E8F0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-item.active {
+            color: #0F172A;
+            font-weight: 700;
+        }
+
+        .nav-item .icon-bg svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Standardized Light Theme Curved Center FAB Button */
+        .nav-item-post-center {
+            position: relative;
+            top: -14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            z-index: 1010;
+        }
+
+        .post-fab-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E293B, #334155);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 0 0 5px #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-item-post-center.active .post-fab-btn {
+            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.35), 0 0 0 5px #FFFFFF;
+        }
+
+        .post-fab-btn:active {
+            transform: scale(0.92);
+        }
+
+        .post-fab-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: #ffffff;
+            stroke-width: 2.8;
+        }
+
+        .post-fab-label {
+            margin-top: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        /* --- Authentication Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .auth-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            transform: translateY(12px) scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.active .auth-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .auth-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            background: #F1F5F9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+            color: #0F172A;
+        }
+
+        .auth-icon-wrapper svg {
+            width: 28px;
+            height: 28px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .auth-card h2 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0F172A;
+            margin: 0 0 6px 0;
+        }
+
+        .auth-card p {
+            font-size: 13px;
+            color: #64748B;
+            margin: 0 0 20px 0;
+            line-height: 1.4;
+        }
+
+        .auth-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-auth-primary {
+            background: linear-gradient(135deg, #1E293B, #334155);
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: block;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+        }
+
+        .btn-auth-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-auth-secondary {
+            background: #F1F5F9;
+            color: #0F172A;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: block;
+            border: 1px solid #E2E8F0;
+            transition: transform 0.15s ease;
+        }
+
+        .btn-auth-secondary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-auth-close {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+            cursor: pointer;
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-view">
+        <!-- Header -->
+        <header class="nav-header">
+            <div class="header-left-group">
+                <h1 class="header-title-text">Choose Category</h1>
+            </div>
+            
+            <div class="header-live-clock-badge" id="topCornerLiveClock">00:00:00 AM</div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-content">
+            <div class="category-selection-container">
+                
+                <!-- 1. Rental Option -->
+                <a href="rentalpost.html" class="category-card protected-route">
+                    <div class="category-info">
+                        <div class="category-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        </div>
+                        <div class="category-text-details">
+                            <h3>Rental Item</h3>
+                            <p>Houses, apartments, vehicles & equipment</p>
+                        </div>
+                    </div>
+                    <div class="arrow-action-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </div>
+                </a>
+
+                <!-- 2. Selling Option -->
+                <a href="sellingpost.html" class="category-card protected-route">
+                    <div class="category-info">
+                        <div class="category-icon-box">
+                            <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                        </div>
+                        <div class="category-text-details">
+                            <h3>Selling Item</h3>
+                            <p>Electronics, vehicles, goods & real estate</p>
+                        </div>
+                    </div>
+                    <div class="arrow-action-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </div>
+                </a>
+
+                <!-- 3. Service Option -->
+                <a href="servicepost.html" class="category-card protected-route">
+                    <div class="category-info">
+                        <div class="category-icon-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                            </svg>
+                        </div>
+                        <div class="category-text-details">
+                            <h3>Service</h3>
+                            <p>Professional services, maintenance & freelancing</p>
+                        </div>
+                    </div>
+                    <div class="arrow-action-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </div>
+                </a>
+
+            </div>
+
+            <footer class="verified-footer-shield">
+                <span class="footer-shield-text">Hulum Secure Matrix Verified</span>
+            </footer>
+        </main>
+
+        <!-- Matched Standardized Bottom Navigation Menu -->
+        <nav class="bottom-nav">
+            <!-- 1. Rental -->
+            <a id="nav-rental" href="rental.html" class="nav-item">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <span>Rental</span>
+            </a>
+
+            <!-- 2. Selling -->
+            <a id="nav-selling" href="selling.html" class="nav-item">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                </div>
+                <span>Selling</span>
+            </a>
+
+            <!-- 5th Curved Center Post Button (Active Tab) -->
+            <a id="nav-post" href="post.html" class="nav-item-post-center active protected-route" aria-label="Post Item">
+                <div class="post-fab-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+                <span class="post-fab-label">Post</span>
+            </a>
+
+            <!-- 3. Service (Standard color matched to other items) -->
+            <a id="nav-service" href="service.html" class="nav-item">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </div>
+                <span>Service</span>
+            </a>
+
+            <!-- 4. Profile -->
+            <a id="nav-profile" href="profile.html" class="nav-item">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Auth Prompt Popup Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="auth-card">
+            <div class="auth-icon-wrapper">
+                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            </div>
+            <h2>Account Required</h2>
+            <p>Please log in or create a free account to post items and services on Hulum.</p>
+            <div class="auth-actions">
+                <a href="login.html" class="btn-auth-primary">Log In</a>
+                <a href="register.html" class="btn-auth-secondary">Create Account</a>
+                <button type="button" class="btn-auth-close" id="closeAuthModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SAFE STORAGE WRAPPERS ---
+        const SafeCache = {
+            set: (k, v) => { try { sessionStorage.setItem(k, v); } catch(e){} },
+            get: (k) => { try { return sessionStorage.getItem(k); } catch(e){ return null; } },
+            remove: (k) => { try { sessionStorage.removeItem(k); } catch(e){} }
+        };
+        const SafeLocal = {
+            set: (k, v) => { try { localStorage.setItem(k, v); } catch(e){} },
+            get: (k) => { try { return localStorage.getItem(k); } catch(e){ return null; } },
+            remove: (k) => { try { localStorage.removeItem(k); } catch(e){} }
+        };
+
+        // Check local storage for active authentication session key safely
+        const userPhoneSession = SafeLocal.get('auth_session_phone');
+        const isLoggedIn = Boolean(userPhoneSession && userPhoneSession.trim().length > 0);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Track routing history safely
+            SafeLocal.set('delala_last_page', 'post.html');
+
+            setupNavigationStateSaving();
+            restoreScrollPosition();
+            initiateLiveInterfaceClocks();
+            setupAccessControl();
+        });
+
+        // --- STATE SAVING ---
+        function setupNavigationStateSaving() {
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (link.href && !link.href.includes('#')) {
+                        SafeCache.set('post_scroll_pos', window.scrollY.toString());
+                    }
+                });
+            });
+        }
+
+        function restoreScrollPosition() {
+            try {
+                const savedPos = SafeCache.get('post_scroll_pos');
+                if (savedPos !== null && window.scrollY === 0) {
+                    setTimeout(() => {
+                        window.scrollTo({ top: parseInt(savedPos, 10), behavior: 'auto' });
+                        SafeCache.remove('post_scroll_pos');
+                    }, 10);
+                }
+            } catch(e){}
+        }
+
+        function initiateLiveInterfaceClocks() {
+            const cornerClockNode = document.getElementById('topCornerLiveClock');
+            setInterval(() => {
+                const now = new Date();
+                if (cornerClockNode) {
+                    cornerClockNode.innerText = now.toLocaleTimeString(undefined, {
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                    });
+                }
+            }, 1000);
+        }
+
+        function setupAccessControl() {
+            const authModal = document.getElementById('authModal');
+            const closeBtn = document.getElementById('closeAuthModal');
+            const protectedLinks = document.querySelectorAll('.protected-route');
+
+            protectedLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (!isLoggedIn) {
+                        e.preventDefault();
+                        openModal();
+                    }
+                });
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeModal);
+            }
+
+            if (authModal) {
+                authModal.addEventListener('click', (e) => {
+                    if (e.target === authModal) {
+                        closeModal();
+                    }
+                });
+            }
+        }
+
+        function openModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.remove('active');
+        }
+    </script>
+</body>
+</html>

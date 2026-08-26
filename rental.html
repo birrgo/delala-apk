@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hulum - Rental Items</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://delala-1b582-default-rtdb.firebaseio.com">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="preload" href="news.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="news.css"></noscript>
+    <link rel="stylesheet" href="rental.css">
+
+    <style>
+        /* --- HEADER LAYOUT RESTRUCTURE --- */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 50;
+            box-sizing: border-box;
+            background: rgba(8, 27, 56, 0.95);
+            backdrop-filter: blur(8px);
+        }
+
+        .header-controls-left,
+        .header-controls-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .header-controls-left .location-action-btn,
+        .header-controls-left .search-action-btn,
+        .header-controls-right .location-action-btn,
+        .header-controls-right .search-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .header-controls-left .location-action-btn svg,
+        .header-controls-left .search-action-btn svg,
+        .header-controls-right .location-action-btn svg,
+        .header-controls-right .search-action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .header-title-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            pointer-events: none;
+            width: 45%;
+        }
+
+        .header-title-main {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .header-title-sub {
+            font-size: 11px;
+            font-weight: 700;
+            color: #38BDF8;
+            line-height: 1.1;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: capitalize;
+        }
+
+        .image-overlay-subcat-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(6px);
+            color: #38BDF8;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 8px;
+            z-index: 5;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            text-transform: capitalize;
+        }
+
+        .animated-distance-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; color: #0284c7; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); white-space: nowrap; cursor: pointer; transition: all 0.3s ease; animation: distancePulse 2.5s infinite ease-in-out; }
+        .animated-distance-chip.no-gps { color: #64748b; background: #f1f5f9; border-color: #e2e8f0; animation: none; }
+        .animated-distance-chip .gps-dot { width: 6px; height: 6px; background-color: #0284c7; border-radius: 50%; display: inline-block; animation: dotGlow 1.5s infinite; }
+        .animated-distance-chip.no-gps .gps-dot { background-color: #94a3b8; animation: none; }
+        @keyframes distancePulse { 0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.25); } 50% { box-shadow: 0 0 0 5px rgba(2, 132, 199, 0); } 100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); } }
+        @keyframes dotGlow { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } }
+        .btn-follow-author.following { background-color: #e2e8f0 !important; color: #334155 !important; border-color: #cbd5e1 !important; }
+        .social-action-btn.liked svg { fill: #ef4444; stroke: #ef4444; animation: likeHeart 0.3s ease-in-out; }
+        @keyframes likeHeart { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .active-filter-indicator { background: rgba(56, 189, 248, 0.3) !important; color: #38BDF8 !important; border-color: #38BDF8 !important; }
+
+        .comment-user-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+        .comment-user-initial { width: 22px; height: 22px; border-radius: 50%; background-color: #e2e8f0; color: #334155; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+        .comment-preview-wrapper { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+        .comment-text-content { font-size: 13px; line-height: 1.4; color: #334155; }
+
+        .btn-view-author-profile-icon {
+            width: 28px; height: 28px; border-radius: 50%; padding: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: #F1F5F9; border: 1px solid #E2E8F0; color: #475569;
+            flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;
+        }
+        
+        /* Pull to refresh styles */
+        .ptr-indicator {
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            height: 0; overflow: hidden; transition: height 0.25s ease;
+            color: #38BDF8; font-size: 13px; font-weight: 700;
+            background: transparent; width: 100%;
+        }
+        .ptr-icon { width: 20px; height: 20px; fill: currentColor; transform: rotate(0deg); transition: transform 0.3s ease;}
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .ptr-spin { animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body>
+
+    <div class="app-view">
+        <svg class="bg-wave bg-wave-top" viewBox="0 0 375 200" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; top:0; left:0; width:100%; height:110px; z-index:-1;">
+            <path d="M0 0H375V75C375 75 280 155 0 95V0Z" fill="url(#paint0_linear)"/>
+            <defs>
+                <linearGradient id="paint0_linear" x1="187.5" y1="0" x2="187.5" y2="200" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#081B38"/>
+                    <stop offset="1" stop-color="#0F2C59"/>
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Status Modal Overlay -->
+        <div class="custom-popup-overlay" id="customPopupModule">
+            <div class="custom-popup-modal">
+                <span class="popup-status-icon" id="popupIconNode">ℹ️</span>
+                <h3 class="popup-main-title" id="popupTitleNode">Status Alert</h3>
+                <p class="popup-body-desc" id="popupDescNode">Notification update context.</p>
+                <button class="popup-dismiss-action" id="closePopupBtn">Continue</button>
+            </div>
+        </div>
+
+        <!-- Header Bar -->
+        <header class="nav-header">
+            <div class="header-controls-left">
+                <a href="city.html" class="location-action-btn" id="locationMenuLink" aria-label="Filter by Country/City" title="Search by Location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </a>
+                <a href="cat.html" class="location-action-btn" id="categoryMenuLink" aria-label="Filter Categories" title="Filter by category">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="header-title-container" id="headerTitleContainer">
+                <div class="header-title-main" id="headerTitleMain">Rental Items</div>
+                <div class="header-title-sub" id="headerTitleSub" style="display: none;"></div>
+            </div>
+
+            <div class="header-controls-right">
+                <button class="location-action-btn" id="triggerGpsFilterBtn" aria-label="Near Me GPS Filter" title="Sort posts by proximity">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </button>
+                <a href="search.html" class="search-action-btn" aria-label="Search Items">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <main class="app-content" style="padding-top: 70px;">
+            <!-- Pull To Refresh Indicator -->
+            <div id="ptr-indicator" class="ptr-indicator">
+                <svg class="ptr-icon" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"></path></svg>
+                <span id="ptr-text">Pull to refresh</span>
+            </div>
+
+            <div class="broadcasts-container" id="broadcastsContainer"></div>
+
+            <div id="infiniteScrollTrigger" class="infinite-scroll-trigger">
+                Loading...
+            </div>
+
+            <footer class="verified-footer-shield">
+                <span class="footer-shield-text" id="footerShieldText">Loading user...</span>
+            </footer>
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <a id="nav-rental" href="rental.html" class="nav-item active" data-filter="Rental">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <span>Rental</span>
+            </a>
+            <a id="nav-selling" href="selling.html" class="nav-item" data-filter="Selling">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                </div>
+                <span>Selling</span>
+            </a>
+            <a id="nav-post" href="post.html" class="nav-item-post-center" aria-label="Post Item">
+                <div class="post-fab-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+                <span class="post-fab-label">Post</span>
+            </a>
+            <a id="nav-service" href="service.html" class="nav-item" data-filter="Service">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                </div>
+                <span>Service</span>
+            </a>
+            <a id="nav-profile" href="profile.html" class="nav-item" data-filter="Profile">
+                <div class="icon-bg">
+                    <img id="navProfilePic" class="nav-profile-img" src="" alt="Profile" style="display:none;">
+                    <svg id="navProfileIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <span id="navProfileName">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, query, orderByChild, limitToLast, endBefore, get, set, remove, runTransaction, startAt, endAt } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXoIY6Q1Cf3Dw0jU5VImIqxchW79OME6Q",
+            authDomain: "delala-1b582.firebaseapp.com",
+            databaseURL: "https://delala-1b582-default-rtdb.firebaseio.com",
+            projectId: "delala-1b582",
+            storageBucket: "delala-1b582.firebasestorage.app",
+            messagingSenderId: "1073041850834",
+            appId: "1:1073041850834:web:fe5d0095c3ff1b238f480b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        const SafeCache = {
+            set: (k, v) => { try { sessionStorage.setItem(k, v); } catch(e){} },
+            get: (k) => { try { return sessionStorage.getItem(k); } catch(e){ return null; } },
+            remove: (k) => { try { sessionStorage.removeItem(k); } catch(e){} }
+        };
+        const SafeLocal = {
+            set: (k, v) => { try { localStorage.setItem(k, v); } catch(e){} },
+            get: (k) => { try { return localStorage.getItem(k); } catch(e){ return null; } },
+            remove: (k) => { try { localStorage.removeItem(k); } catch(e){} }
+        };
+
+        const CACHE_KEY = 'hulum_rental_cache_v1';
+        const BATCH_LIMIT = 8; 
+        
+        let lastLoadedTimestamp = null;
+        let lastLoadedKey = null;
+        let isLoading = false;
+        let hasMoreItems = true;
+        let isRefreshingView = false; // Prevents clearing old data until new data arrives
+        
+        let localCachedBroadcasts = [];
+        let currentUserCoordinates = null;
+        let isGpsActive = false;
+
+        let activeCategoryFilter = 'all';
+        let activeLocationFilter = null;
+        
+        let currentActiveUserId = null;
+        let currentUserPhoto = '';
+        let currentUserDisplayName = '';
+        let userFollowingSet = new Set();
+        
+        const userProfileCache = {};
+
+        const DOM = {
+            container: document.getElementById('broadcastsContainer'),
+            triggerEl: document.getElementById('infiniteScrollTrigger'),
+            popupModal: document.getElementById('customPopupModule'),
+            popupTitleNode: document.getElementById('popupTitleNode'),
+            popupDescNode: document.getElementById('popupDescNode'),
+            popupIconNode: document.getElementById('popupIconNode'),
+            closePopupBtn: document.getElementById('closePopupBtn'),
+            gpsBtn: document.getElementById('triggerGpsFilterBtn'),
+            catLinkBtn: document.getElementById('categoryMenuLink'),
+            locLinkBtn: document.getElementById('locationMenuLink'),
+            headerTitleMain: document.getElementById('headerTitleMain'),
+            headerTitleSub: document.getElementById('headerTitleSub')
+        };
+
+        const BITS = [16, 8, 4, 2, 1];
+        const BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
+
+        function setupNavigationStateSaving() {
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (link.href && !link.href.includes('#')) {
+                        SafeCache.set('rental_scroll_pos', window.scrollY.toString());
+                    }
+                });
+            });
+        }
+
+        function setupPullToRefresh() {
+            let startY = 0; let currentY = 0; let isPulling = false;
+            const ptrEl = document.getElementById('ptr-indicator');
+            const ptrText = document.getElementById('ptr-text');
+            const ptrIcon = document.querySelector('.ptr-icon');
+
+            if (!ptrEl || !ptrText || !ptrIcon) return;
+
+            document.addEventListener('touchstart', e => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].clientY;
+                    isPulling = true;
+                }
+            }, {passive: true});
+
+            document.addEventListener('touchmove', e => {
+                if (!isPulling) return;
+                currentY = e.touches[0].clientY;
+                let pullDist = currentY - startY;
+                
+                if (pullDist > 0 && window.scrollY === 0) {
+                    let height = Math.min(pullDist / 2, 70); 
+                    ptrEl.style.height = height + 'px';
+                    
+                    if (height > 55) {
+                        ptrText.innerText = "Release to refresh";
+                        ptrIcon.style.transform = "rotate(180deg)";
+                    } else {
+                        ptrText.innerText = "Pull to refresh";
+                        ptrIcon.style.transform = "rotate(0deg)";
+                    }
+                }
+            }, {passive: true});
+
+            document.addEventListener('touchend', () => {
+                if (!isPulling) return;
+                isPulling = false;
+                let pullDist = currentY - startY;
+                
+                if (pullDist > 110 && window.scrollY === 0) {
+                    ptrEl.style.height = '50px';
+                    ptrText.innerText = "Refreshing...";
+                    ptrIcon.classList.add('ptr-spin');
+                    refreshData();
+                } else {
+                    ptrEl.style.height = '0px';
+                    ptrIcon.style.transform = "rotate(0deg)";
+                }
+                startY = 0; currentY = 0;
+            });
+        }
+
+        // BACKGROUND REFRESH: Keeps old items visible until new ones load
+        function refreshData() {
+            isRefreshingView = true;
+            isLoading = false; // Reset lock just in case
+            
+            // Reset pagination to fetch top newest items, BUT leave DOM alone
+            lastLoadedTimestamp = null;
+            lastLoadedKey = null;
+            hasMoreItems = true;
+            
+            fetchItemsBatch().finally(() => {
+                // Fetch is completely done, hide the spinner
+                isRefreshingView = false;
+                
+                const ptrEl = document.getElementById('ptr-indicator');
+                const ptrIcon = document.querySelector('.ptr-icon');
+                if (ptrEl) ptrEl.style.height = '0px';
+                setTimeout(() => {
+                    if (ptrIcon) {
+                        ptrIcon.classList.remove('ptr-spin');
+                        ptrIcon.style.transform = "rotate(0deg)";
+                    }
+                    const pText = document.getElementById('ptr-text');
+                    if (pText) pText.innerText = "Pull to refresh";
+                }, 300);
+            });
+        }
+
+        // --- UPDATED TIMEOUT ---
+        // This is now set to 3 minutes (180,000 ms) and includes the helpful popup
+        setTimeout(() => {
+            const footerEl = document.getElementById('footerShieldText');
+            if (footerEl && footerEl.innerText === 'Loading user...') footerEl.innerText = 'Guest (Timeout)';
+            
+            if (DOM.triggerEl && DOM.triggerEl.innerText === 'Loading...' && localCachedBroadcasts.length === 0) {
+                // Show the inline error with the Retry button 
+                DOM.triggerEl.innerHTML = `<span style="color:#ef4444; font-weight:bold;">Network took too long.</span> <button onclick="window.location.reload()" style="margin-left:10px; padding:6px 12px; background:#0F2C59; color:white; border-radius:6px; border:none;">Retry</button>`;
+                
+                // Trigger the popup to explain the delay after 3 minutes
+                if (typeof triggerSystemAlert === 'function') {
+                    triggerSystemAlert(
+                        "Search Complete", 
+                        "The deep search took a long time or no items were found on this network connection. You can tap Retry to try again.", 
+                        "⏳"
+                    );
+                }
+            }
+        }, 180000); // 180000 ms = 3 minutes
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                setupNavigationStateSaving();
+                setupPullToRefresh();
+                
+                let requestedCategory = urlParams.get('category');
+                let requestedLocation = urlParams.get('location');
+
+                if (requestedCategory) SafeCache.set('rental_cat_filter', requestedCategory);
+                else requestedCategory = SafeCache.get('rental_cat_filter');
+
+                if (requestedLocation) SafeCache.set('rental_loc_filter', requestedLocation);
+                else requestedLocation = SafeCache.get('rental_loc_filter');
+
+                if (requestedCategory && requestedCategory !== 'all') {
+                    activeCategoryFilter = requestedCategory.toLowerCase();
+                    if (DOM.catLinkBtn) DOM.catLinkBtn.classList.add('active-filter-indicator');
+                } else {
+                    SafeCache.remove('rental_cat_filter'); 
+                }
+
+                if (requestedLocation) {
+                    activeLocationFilter = requestedLocation.trim().toLowerCase();
+                    if (DOM.locLinkBtn) DOM.locLinkBtn.classList.add('active-filter-indicator');
+                }
+
+                if (DOM.catLinkBtn) DOM.catLinkBtn.setAttribute('href', `cat.html${activeLocationFilter ? '?location=' + encodeURIComponent(activeLocationFilter) : ''}`);
+                if (DOM.locLinkBtn) DOM.locLinkBtn.setAttribute('href', `city.html${activeCategoryFilter !== 'all' ? '?category=' + encodeURIComponent(activeCategoryFilter) : ''}`);
+
+                updateHeaderTitleDisplay();
+
+                if (DOM.closePopupBtn) {
+                    DOM.closePopupBtn.addEventListener('click', () => {
+                        if (DOM.popupModal) DOM.popupModal.classList.remove('show-popup');
+                    });
+                }
+
+                setupInfiniteScrollObserver();
+                setupGpsDetectionControl();
+                setupAuthListener();
+                
+                checkCacheAndLoad();
+            } catch (initError) {
+                if (DOM.triggerEl) DOM.triggerEl.innerText = "App encountered an error loading.";
+            }
+        });
+
+        function saveStateToCache() {
+            try {
+                const cacheData = {
+                    items: localCachedBroadcasts,
+                    lastLoadedTimestamp: lastLoadedTimestamp,
+                    lastLoadedKey: lastLoadedKey,
+                    categoryFilter: activeCategoryFilter,
+                    locationFilter: activeLocationFilter,
+                    hasMoreItems: hasMoreItems
+                };
+                SafeCache.set(CACHE_KEY, JSON.stringify(cacheData));
+            } catch(e) {}
+        }
+
+        function checkCacheAndLoad() {
+            const cachedString = SafeCache.get(CACHE_KEY);
+            let usedCache = false;
+
+            if (cachedString && !isGpsActive) {
+                try {
+                    const parsed = JSON.parse(cachedString);
+                    if (parsed.categoryFilter === activeCategoryFilter && parsed.locationFilter === activeLocationFilter && parsed.items && parsed.items.length > 0) {
+                        localCachedBroadcasts = parsed.items;
+                        lastLoadedTimestamp = parsed.lastLoadedTimestamp;
+                        lastLoadedKey = parsed.lastLoadedKey;
+                        hasMoreItems = parsed.hasMoreItems;
+                        
+                        renderFilteredListings(localCachedBroadcasts);
+                        usedCache = true;
+                        
+                        if (DOM.triggerEl && !hasMoreItems) DOM.triggerEl.innerText = "All items loaded.";
+                    }
+                } catch(e) {}
+            }
+
+            if (!usedCache) fetchItemsBatch();
+        }
+
+        function encodeFastGeohash(latitude, longitude, precision = 7) {
+            let isEven = true, lat = [-90.0, 90.0], lon = [-180.0, 180.0], bit = 0, ch = 0, geohash = "";
+            while (geohash.length < precision) {
+                let mid = isEven ? (lon[0] + lon[1]) / 2 : (lat[0] + lat[1]) / 2;
+                if (isEven) { if (longitude > mid) { ch |= BITS[bit]; lon[0] = mid; } else lon[1] = mid; }
+                else { if (latitude > mid) { ch |= BITS[bit]; lat[0] = mid; } else lat[1] = mid; }
+                isEven = !isEven;
+                if (bit < 4) bit++; else { geohash += BASE32[ch]; bit = 0; ch = 0; }
+            }
+            return geohash;
+        }
+
+        function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; const dLat = deg2rad(lat2 - lat1); const dLon = deg2rad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+        function deg2rad(deg) { return deg * (Math.PI / 180); }
+
+        function updateHeaderTitleDisplay() {
+            if (!DOM.headerTitleMain || !DOM.headerTitleSub) return;
+            const hasCat = activeCategoryFilter && activeCategoryFilter !== 'all';
+            const hasLoc = activeLocationFilter && activeLocationFilter.length > 0;
+            const formattedCat = hasCat ? (activeCategoryFilter.charAt(0).toUpperCase() + activeCategoryFilter.slice(1)) : '';
+            const formattedLoc = hasLoc ? (activeLocationFilter.charAt(0).toUpperCase() + activeLocationFilter.slice(1)) : '';
+
+            if (hasCat && hasLoc) {
+                DOM.headerTitleMain.innerText = ` ${formattedLoc}`;
+                DOM.headerTitleSub.innerText = formattedCat;
+                DOM.headerTitleSub.style.display = 'block';
+            } else if (hasLoc) {
+                DOM.headerTitleMain.innerText = ` ${formattedLoc}`;
+                DOM.headerTitleSub.style.display = 'none';
+            } else if (hasCat) {
+                DOM.headerTitleMain.innerText = formattedCat;
+                DOM.headerTitleSub.style.display = 'none';
+            } else {
+                DOM.headerTitleMain.innerText = 'Rental Items';
+                DOM.headerTitleSub.style.display = 'none';
+            }
+        }
+
+        function setupAuthListener() {
+            onAuthStateChanged(auth, (user) => {
+                const sessionPhone = SafeLocal.get('auth_session_phone');
+                if (user) {
+                    SafeLocal.remove('user_logged_out');
+                    fetchUserData(user.uid, user);
+                } else if (sessionPhone) {
+                    SafeLocal.remove('user_logged_out');
+                    fetchUserByPhone(sessionPhone);
+                } else {
+                    renderGuestState();
+                }
+            });
+        }
+
+        async function fetchUserByPhone(phone) {
+            const cleanPhone = phone.replace(/^0+/, '');
+            try {
+                const snapshot = await get(ref(db, `users/${cleanPhone}`));
+                const followingSnap = await get(ref(db, `following/${cleanPhone}`));
+                const followingList = followingSnap.exists() ? followingSnap.val() : {};
+
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    data._realFollowingList = followingList;
+                    applyUserDataToDOM(data, cleanPhone);
+                    return;
+                }
+                const querySnap = await get(ref(db, 'users'));
+                if (querySnap.exists()) {
+                    const data = querySnap.val();
+                    const matchedKey = Object.keys(data).find(k => {
+                        const u = data[k];
+                        const uPhone = String(u.cleanPhone || u.phone || u.phoneNumber || '').replace(/\D/g, '').replace(/^0+/, '');
+                        return uPhone === cleanPhone || k === cleanPhone;
+                    });
+                    if (matchedKey) {
+                        const matchedFollowingSnap = await get(ref(db, `following/${matchedKey}`));
+                        data[matchedKey]._realFollowingList = matchedFollowingSnap.exists() ? matchedFollowingSnap.val() : {};
+                        applyUserDataToDOM(data[matchedKey], matchedKey);
+                        return;
+                    }
+                }
+                renderGuestState();
+            } catch (err) { renderGuestState(true); }
+        }
+
+        async function fetchUserData(userId, authUser) {
+            currentActiveUserId = userId;
+            try {
+                const snapshot = await get(ref(db, `users/${userId}`));
+                const followingSnap = await get(ref(db, `following/${userId}`));
+                const followingList = followingSnap.exists() ? followingSnap.val() : {};
+
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    userData._realFollowingList = followingList;
+                    applyUserDataToDOM(userData, userId);
+                } else {
+                    const parts = authUser.displayName ? authUser.displayName.split(' ') : [];
+                    const firstName = parts[0] || "User";
+                    const fallbackData = { 
+                        displayName: authUser.displayName || firstName, 
+                        firstName: firstName, 
+                        photoURL: authUser.photoURL || '',
+                        _realFollowingList: followingList
+                    };
+                    applyUserDataToDOM(fallbackData, userId);
+                }
+            } catch (e) { renderGuestState(true); }
+        }
+
+        function applyUserDataToDOM(userData, userId) {
+            currentActiveUserId = userId;
+            let firstName = userData.firstName || userData.first_name || "";
+            let middleName = userData.middleName || userData.middle_name || userData.fatherName || "";
+            if (!firstName && userData.fullName) { 
+                const parts = userData.fullName.trim().split(/\s+/); 
+                firstName = parts[0] || ""; 
+                middleName = parts[1] || ""; 
+            }
+
+            currentUserDisplayName = userData.displayName || `${firstName} ${middleName}`.trim() || userData.username || "User";
+            currentUserPhoto = userData.profilePicture || userData.photoURL || '';
+
+            if (userData._realFollowingList) {
+                userFollowingSet = new Set(Object.keys(userData._realFollowingList));
+            } else if (userData.following_list && typeof userData.following_list === 'object') {
+                userFollowingSet = new Set(Object.keys(userData.following_list));
+            } else if (userData.following && typeof userData.following === 'object') {
+                userFollowingSet = new Set(Object.keys(userData.following));
+            }
+
+            const shortFirstName = currentUserDisplayName.trim().split(' ')[0] || 'User';
+            const imgEl = document.getElementById('navProfilePic');
+            const iconEl = document.getElementById('navProfileIcon');
+            const nameEl = document.getElementById('navProfileName');
+            const footerShieldEl = document.getElementById('footerShieldText');
+
+            if (currentUserPhoto && imgEl) { 
+                imgEl.src = currentUserPhoto; 
+                imgEl.style.display = 'block'; 
+                if (iconEl) iconEl.style.display = 'none'; 
+            }
+            if (nameEl) nameEl.innerText = shortFirstName;
+            if (footerShieldEl) {
+                footerShieldEl.innerText = `${shortFirstName} Verified`;
+                footerShieldEl.style.color = 'inherit';
+            }
+            
+            document.querySelectorAll('.btn-follow-author').forEach(btn => {
+                const authId = btn.className.match(/follow-btn-([^ ]+)/);
+                if (authId && authId[1]) {
+                    const isF = userFollowingSet.has(authId[1]);
+                    btn.innerText = isF ? "Following" : "+ Follow";
+                    if (isF) btn.classList.add('following');
+                }
+            });
+        }
+
+        function renderGuestState(isError = false) {
+            currentActiveUserId = null;
+            currentUserPhoto = '';
+            currentUserDisplayName = '';
+            userFollowingSet.clear();
+            
+            const imgEl = document.getElementById('navProfilePic');
+            const iconEl = document.getElementById('navProfileIcon');
+            const nameEl = document.getElementById('navProfileName');
+            const footerShieldEl = document.getElementById('footerShieldText');
+
+            if (imgEl) imgEl.style.display = 'none';
+            if (iconEl) iconEl.style.display = 'block';
+            if (nameEl) nameEl.innerText = 'Profile';
+            if (footerShieldEl) {
+                footerShieldEl.innerText = isError ? 'Guest (Network Issue)' : 'Guest Verified';
+            }
+        }
+
+        function getActiveLoggedInUserId() {
+            if (currentActiveUserId) return currentActiveUserId;
+            if (auth.currentUser) return auth.currentUser.uid;
+            const sessionPhone = SafeLocal.get('auth_session_phone');
+            if (sessionPhone) return sessionPhone.replace(/\D/g, '').replace(/^0+/, '');
+            return null;
+        }
+
+        function isRentalCategory(item) {
+            if (!item) return false;
+            const rType = String(item.rentalType || '').trim().toLowerCase();
+            const cat = String(item.category || '').trim().toLowerCase();
+            return rType.length > 0 || cat.includes('rental') || cat.includes('rent');
+        }
+
+        function itemMatchesFilters(item) {
+            if (activeCategoryFilter !== 'all') {
+                const catStr = [item.rentalSubCategory, item.subCategory, item.category, item.rentalType, item.title].join(' ').toLowerCase();
+                if (!catStr.includes(activeCategoryFilter)) return false;
+            }
+            if (activeLocationFilter) {
+                const locStr = [
+                    item.address, 
+                    item.locationString, 
+                    typeof item.location === 'string' ? item.location : '', 
+                    item.city, 
+                    item.country,
+                    item.locationDetails?.country,
+                    item.locationDetails?.region,
+                    item.locationDetails?.zone,
+                    item.locationDetails?.city,
+                    item.locationDetails?.subcity,
+                    item.locationDetails?.uniqueName,
+                    item.locationDetails?.landmark
+                ].filter(Boolean).join(' ').toLowerCase();
+                
+                const searchStr = activeLocationFilter.replace(' region', '').trim();
+                if (!locStr.includes(searchStr)) return false;
+            }
+            return true;
+        }
+
+        async function fetchItemsBatch() {
+            if (isLoading || !hasMoreItems) return;
+            isLoading = true;
+            
+            // Do not alter bottom loading text if refreshing top
+            if (DOM.triggerEl && !isRefreshingView) DOM.triggerEl.innerText = `Loading...`;
+
+            const nodePaths = ['posts', 'delala_new'];
+            try {
+                const fetchPromises = nodePaths.map(async (nodePath) => {
+                    const baseRef = ref(db, nodePath);
+                    let dbQuery = lastLoadedTimestamp !== null 
+                        ? query(baseRef, orderByChild('createdAt'), endBefore(lastLoadedTimestamp, lastLoadedKey), limitToLast(BATCH_LIMIT))
+                        : query(baseRef, orderByChild('createdAt'), limitToLast(BATCH_LIMIT));
+
+                    const snapshot = await get(dbQuery);
+                    const results = [];
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnap) => {
+                            results.push({ id: childSnap.key, _dbPath: nodePath, ...childSnap.val() });
+                        });
+                    }
+                    return results;
+                });
+
+                const rawResults = await Promise.all(fetchPromises);
+                const fetchedListings = rawResults.flat();
+
+                // SUCCESSFUL FETCH: If refreshing, NOW it's safe to wipe old data
+                if (isRefreshingView) {
+                    if (DOM.container) DOM.container.innerHTML = '';
+                    localCachedBroadcasts = [];
+                    SafeCache.remove(CACHE_KEY);
+                    isRefreshingView = false; // Turn off immediately so pagination works on recursive calls
+                }
+
+                if (fetchedListings.length === 0) {
+                    hasMoreItems = false;
+                    saveStateToCache();
+                    if (DOM.triggerEl) DOM.triggerEl.innerText = localCachedBroadcasts.length === 0 ? "" : "All items loaded.";
+                    if (localCachedBroadcasts.length === 0) renderEmptyState();
+                    isLoading = false;
+                    return;
+                }
+
+                fetchedListings.sort((a, b) => (b.createdAt || b.timestamp || 0) - (a.createdAt || a.timestamp || 0));
+
+                const validItems = [];
+                for (const rawItem of fetchedListings) {
+                    const currentTS = rawItem.createdAt || rawItem.timestamp || 0;
+                    if (lastLoadedTimestamp === null || currentTS < lastLoadedTimestamp) {
+                        lastLoadedTimestamp = currentTS;
+                        lastLoadedKey = rawItem.id;
+                    }
+
+                    if (isRentalCategory(rawItem) && itemMatchesFilters(rawItem) && !localCachedBroadcasts.some(b => b.id === rawItem.id)) {
+                        validItems.push(rawItem);
+                    }
+                }
+
+                if (validItems.length > 0) {
+                    localCachedBroadcasts.push(...validItems);
+                    renderFilteredListings(validItems);
+                    saveStateToCache();
+                } 
+                
+                if (validItems.length === 0 && hasMoreItems) {
+                    isLoading = false;
+                    return fetchItemsBatch();
+                }
+
+                if (DOM.triggerEl) {
+                    DOM.triggerEl.innerText = hasMoreItems ? "Loading..." : "All items loaded.";
+                }
+
+            } catch (error) { 
+                console.error("Error loading posts:", error); 
+                // ONLY show bottom error if not refreshing
+                if (DOM.triggerEl && !isRefreshingView) {
+                    DOM.triggerEl.innerHTML = `<span style="color:#ef4444; font-weight:bold;">Network error. Cannot load items.</span> <button onclick="window.location.reload()" style="margin-left:10px; padding:6px 12px; background:#0F2C59; color:white; border-radius:6px; border:none;">Retry</button>`;
+                }
+            } 
+            finally { isLoading = false; }
+        }
+
+        async function hydrateAuthorProfile(authorId, itemId) {
+            if (!authorId || authorId === 'unknown') return;
+            try {
+                let uData = userProfileCache[authorId];
+                if (!uData) {
+                    const snap = await get(ref(db, `users/${authorId}`));
+                    if (snap.exists()) {
+                        uData = snap.val();
+                        userProfileCache[authorId] = uData;
+                    } else {
+                        userProfileCache[authorId] = { notFound: true };
+                        return;
+                    }
+                }
+                if (uData.notFound) return;
+
+                let fName = uData.firstName || uData.first_name || "";
+                if (!fName && uData.fullName) fName = uData.fullName.trim().split(/\s+/)[0];
+                const dName = uData.displayName || fName || uData.username || "User";
+                const shortName = dName.trim().split(' ')[0] || 'User';
+                const pPhoto = uData.photoURL || uData.profilePicture || "";
+
+                const nameNode = document.getElementById(`author-name-${itemId}`);
+                const avatarNode = document.getElementById(`author-avatar-${itemId}`);
+                const clickNode = document.getElementById(`author-click-${itemId}`);
+
+                if (nameNode) nameNode.innerText = shortName;
+                if (avatarNode) {
+                    if (pPhoto) {
+                        avatarNode.innerHTML = `<img class="author-avatar" src="${pPhoto}">`;
+                    } else {
+                        avatarNode.innerHTML = `<div class="author-avatar">${shortName.charAt(0).toUpperCase()}</div>`;
+                    }
+                }
+                if (clickNode) {
+                    clickNode.setAttribute('onclick', `navigateToAuthorProfile(event, '${authorId}', '${dName.replace(/'/g, "\\'")}')`);
+                }
+            } catch(e) {}
+        }
+
+        function renderFilteredListings(itemsToAppend) {
+            if (!DOM.container) return;
+            const fragment = document.createDocumentFragment();
+            itemsToAppend.forEach(item => {
+                if(document.getElementById(`item-card-${item.id}`)) return;
+                
+                const card = document.createElement('article');
+                card.className = "featured-broadcast-card";
+                card.id = `item-card-${item.id}`;
+                card.setAttribute('onclick', `openFullNewsReader('${item.id}', '${item._dbPath || 'posts'}')`);
+                card.innerHTML = buildSingleNewsCardHTML(item);
+                fragment.appendChild(card);
+            });
+            DOM.container.appendChild(fragment);
+
+            itemsToAppend.forEach(item => {
+                const authorId = item.userId || item.uid || item.postedBy || 'unknown';
+                if (authorId !== 'unknown') hydrateAuthorProfile(authorId, item.id);
+            });
+
+            restoreScrollPosition();
+        }
+
+        function renderEmptyState() {
+            if (!DOM.container) return;
+            DOM.container.innerHTML = `
+                <article class="featured-broadcast-card">
+                    <div class="badge-meta-row"><span class="spotlight-pill">Rental Market</span></div>
+                    <h2 class="broadcast-title" style="margin-top:8px;">No Items Found</h2>
+                    <p class="broadcast-body-text" style="color: #64748B; font-size:13px; margin-top:4px;">No active rental listings available matching your current location or category filters.</p>
+                </article>
+            `;
+        }
+
+        function setupInfiniteScrollObserver() {
+            if (!DOM.triggerEl) return;
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && !isLoading && hasMoreItems && !isGpsActive && !isRefreshingView) {
+                    fetchItemsBatch();
+                }
+            }, { rootMargin: '200px', threshold: 0.1 });
+            observer.observe(DOM.triggerEl);
+        }
+
+        function extractItemCoordinates(item) {
+            if (item.location && typeof item.location === 'object') {
+                const lat = parseFloat(item.location.latitude); const lng = parseFloat(item.location.longitude);
+                if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+            }
+            const fallbackLat = item.latitude ?? item.lat ?? item.locationDetails?.lat ?? item.coordinates?.lat;
+            const fallbackLng = item.longitude ?? item.lng ?? item.locationDetails?.lng ?? item.coordinates?.lng;
+            if (fallbackLat !== undefined && fallbackLng !== undefined) {
+                const pLat = parseFloat(fallbackLat); const pLng = parseFloat(fallbackLng);
+                if (!isNaN(pLat) && !isNaN(pLng)) return { lat: pLat, lng: pLng };
+            }
+            return null;
+        }
+
+        async function fetchNearbyItemsFromDB() {
+            if (!currentUserCoordinates) return;
+            isLoading = true;
+            const userGeohash = encodeFastGeohash(currentUserCoordinates.lat, currentUserCoordinates.lng, 3); 
+            const nodePaths = ['posts', 'delala_new'];
+            const matchingItems = [];
+            const seenIds = new Set(); 
+
+            try {
+                for (const nodePath of nodePaths) {
+                    const q = query(ref(db, nodePath), orderByChild('geohash'), startAt(userGeohash), endAt(userGeohash + '\uf8ff'));
+                    const snapshot = await get(q);
+                    
+                    let itemsFoundByGeohash = false;
+
+                    snapshot.forEach((childSnap) => {
+                        itemsFoundByGeohash = true;
+                        const rawItem = { id: childSnap.key, _dbPath: nodePath, ...childSnap.val() };
+                        processDistanceCheck(rawItem, seenIds, matchingItems);
+                    });
+
+                    if (!itemsFoundByGeohash) {
+                        const fallbackQ = query(ref(db, nodePath), limitToLast(50));
+                        const fbSnapshot = await get(fallbackQ);
+                        fbSnapshot.forEach((childSnap) => {
+                            const rawItem = { id: childSnap.key, _dbPath: nodePath, ...childSnap.val() };
+                            processDistanceCheck(rawItem, seenIds, matchingItems);
+                        });
+                    }
+                }
+                
+                if (DOM.container) DOM.container.innerHTML = '';
+                matchingItems.sort((a, b) => a._calculatedDistance - b._calculatedDistance);
+                localCachedBroadcasts = matchingItems; 
+                
+                if(matchingItems.length > 0) renderFilteredListings(matchingItems);
+                else renderEmptyState();
+
+                if (DOM.triggerEl) DOM.triggerEl.innerText = matchingItems.length > 0 ? "All nearby items loaded." : "No items found within 50km.";
+            } catch (error) { 
+                if (DOM.container) DOM.container.innerHTML = '<div style="text-align:center; padding: 20px; color: red;">Error locating nearby items.</div>';
+            } 
+            finally { isLoading = false; }
+        }
+
+        function processDistanceCheck(rawItem, seenIds, matchingItems) {
+            if (!seenIds.has(rawItem.id) && isRentalCategory(rawItem) && itemMatchesFilters(rawItem)) {
+                const coords = extractItemCoordinates(rawItem);
+                if (coords) {
+                    const dist = calculateDistanceKm(currentUserCoordinates.lat, currentUserCoordinates.lng, coords.lat, coords.lng);
+                    if (dist <= 50) { 
+                        rawItem._calculatedDistance = dist; 
+                        matchingItems.push(rawItem); 
+                        seenIds.add(rawItem.id); 
+                    }
+                }
+            }
+        }
+
+        window.triggerGpsAcquisition = function(event) {
+            if (event) event.stopPropagation();
+            if (!DOM.gpsBtn) return;
+            if (!navigator.geolocation) return triggerSystemAlert("GPS Unsupported", "Geolocation is not supported.", "⚠️");
+
+            DOM.gpsBtn.style.opacity = "0.5";
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    DOM.gpsBtn.style.opacity = "1";
+                    currentUserCoordinates = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    isGpsActive = true;
+                    DOM.gpsBtn.classList.add('active-gps');
+                    if (DOM.container) DOM.container.innerHTML = `<div style="text-align:center; padding: 30px; font-weight:600; color:#64748B;">Searching Database for items within 50km...</div>`;
+                    await fetchNearbyItemsFromDB();
+                },
+                (error) => {
+                    DOM.gpsBtn.style.opacity = "1";
+                    triggerSystemAlert("GPS Error", "Unable to retrieve position.", "");
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        };
+
+        function setupGpsDetectionControl() {
+            if (!DOM.gpsBtn) return;
+            DOM.gpsBtn.addEventListener('click', () => {
+                if (isGpsActive) {
+                    isGpsActive = false;
+                    DOM.gpsBtn.classList.remove('active-gps');
+                    
+                    if (DOM.container) DOM.container.innerHTML = '';
+                    checkCacheAndLoad();
+                } else { window.triggerGpsAcquisition(); }
+            });
+        }
+
+        function restoreScrollPosition() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetItemId = urlParams.get('returnId');
+                const savedPos = SafeCache.get('rental_scroll_pos');
+
+                if (targetItemId) {
+                    const targetCard = document.getElementById(`item-card-${targetItemId}`);
+                    if (targetCard) {
+                        targetCard.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        targetCard.style.outline = '2px solid #38BDF8';
+                        setTimeout(() => { targetCard.style.outline = 'none'; }, 2000);
+                        return;
+                    }
+                }
+                if (savedPos !== null && window.scrollY === 0) {
+                    setTimeout(() => {
+                        window.scrollTo({ top: parseInt(savedPos, 10), behavior: 'auto' });
+                        SafeCache.remove('rental_scroll_pos');
+                    }, 10);
+                }
+            } catch(e){}
+        }
+
+        window.openFullNewsReader = function(itemId, path) {
+            SafeCache.set('rental_scroll_pos', window.scrollY.toString());
+            window.location.href = `rentalfull.html?id=${encodeURIComponent(itemId)}&path=${encodeURIComponent(path || 'posts')}`;
+        };
+
+        function triggerSystemAlert(title, message, icon = "ℹ️") {
+            if (DOM.popupTitleNode) DOM.popupTitleNode.innerText = title; 
+            if (DOM.popupDescNode) DOM.popupDescNode.innerText = message; 
+            if (DOM.popupIconNode) DOM.popupIconNode.innerText = icon;
+            if (DOM.popupModal) DOM.popupModal.classList.add('show-popup');
+        }
+
+        window.navigateToAuthorProfile = function(event, userId, userName) {
+            if (event) event.stopPropagation();
+            SafeCache.set('rental_scroll_pos', window.scrollY.toString());
+            if (userId && userId !== 'unknown') window.location.href = `user.html?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName || 'User')}`;
+        };
+
+        window.toggleFollowUser = async function(event, authorId) {
+            if (event) event.stopPropagation();
+            const activeUserId = getActiveLoggedInUserId();
+            if (!activeUserId) return triggerSystemAlert("Sign In Required", "Please sign in to follow.", "🔐");
+            if (activeUserId === authorId) return triggerSystemAlert("Action Restricted", "You cannot follow yourself.", "ℹ️");
+
+            const btns = document.querySelectorAll(`.follow-btn-${authorId}`);
+            btns.forEach(btn => { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.6'; });
+
+            const followingRef = ref(db, `following/${activeUserId}/${authorId}`);
+            const followerRef = ref(db, `followers/${authorId}/${activeUserId}`);
+            const myUserRef = ref(db, `users/${activeUserId}/following`);
+            const targetUserRef = ref(db, `users/${authorId}/followers`);
+            
+            const isFollowing = userFollowingSet.has(authorId);
+
+            try {
+                let myFollowingCount = parseInt((await get(myUserRef)).val()) || 0;
+                let targetFollowersCount = parseInt((await get(targetUserRef)).val()) || 0;
+
+                if (isFollowing) { 
+                    await remove(followingRef); 
+                    await remove(followerRef);
+                    userFollowingSet.delete(authorId); 
+                    await set(myUserRef, Math.max(0, myFollowingCount - 1));
+                    await set(targetUserRef, Math.max(0, targetFollowersCount - 1));
+                } else { 
+                    const now = Date.now();
+                    let myData = {};
+                    try { const mSnap = await get(ref(db, `users/${activeUserId}`)); if(mSnap.exists()) myData = mSnap.val(); } catch(e){}
+                    
+                    let targetData = userProfileCache[authorId] || {};
+                    if (!targetData || Object.keys(targetData).length === 0) {
+                        try { const tSnap = await get(ref(db, `users/${authorId}`)); if(tSnap.exists()) targetData = tSnap.val(); } catch(e){}
+                    }
+
+                    await set(followingRef, {
+                        uid: authorId,
+                        displayName: targetData.displayName || targetData.fullName || targetData.firstName || "User",
+                        username: targetData.username || targetData.handle || "user",
+                        photoURL: targetData.photoURL || targetData.profilePicture || "s.png",
+                        timestamp: now
+                    });
+
+                    await set(followerRef, {
+                        uid: activeUserId,
+                        displayName: myData.displayName || myData.fullName || myData.firstName || "User",
+                        username: myData.username || myData.handle || "user",
+                        photoURL: myData.photoURL || myData.profilePicture || "s.png",
+                        timestamp: now
+                    });
+
+                    userFollowingSet.add(authorId); 
+                    await set(myUserRef, myFollowingCount + 1);
+                    await set(targetUserRef, targetFollowersCount + 1);
+                }
+                
+                btns.forEach(btn => {
+                    btn.innerText = userFollowingSet.has(authorId) ? "Following" : "+ Follow";
+                    userFollowingSet.has(authorId) ? btn.classList.add('following') : btn.classList.remove('following');
+                });
+            } catch (err) { 
+                triggerSystemAlert("Error", "Failed to update follow status.", "⚠️");
+            } finally {
+                btns.forEach(btn => { btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; });
+            }
+        };
+
+        window.toggleLikePost = function(event, itemId, path) {
+            if (event) event.stopPropagation();
+            const activeUserId = getActiveLoggedInUserId();
+            if (!activeUserId) return triggerSystemAlert("Sign In Required", "Please sign in to like items.", "❤️");
+            
+            const likeBtn = document.getElementById(`like-btn-${itemId}`);
+            const likeCountNode = document.getElementById(`like-count-${itemId}`);
+            if (!likeBtn || !likeCountNode) return;
+
+            const isCurrentlyLiked = likeBtn.classList.contains('liked');
+            let currentCount = parseInt(likeCountNode.innerText || '0', 10);
+            
+            likeBtn.classList.toggle('liked', !isCurrentlyLiked);
+            likeCountNode.innerText = isCurrentlyLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+
+            const cachedItem = localCachedBroadcasts.find(i => i.id === itemId);
+            if (cachedItem) {
+                if (!cachedItem.likedBy) cachedItem.likedBy = {};
+                if (isCurrentlyLiked) { 
+                    delete cachedItem.likedBy[activeUserId]; 
+                    cachedItem.likes = Math.max(0, (cachedItem.likes || 1) - 1); 
+                } 
+                else { 
+                    cachedItem.likedBy[activeUserId] = true; 
+                    cachedItem.likes = (cachedItem.likes || 0) + 1; 
+                }
+                saveStateToCache();
+            }
+
+            const likedByRef = ref(db, `${path}/${itemId}/likedBy/${activeUserId}`);
+            const likesCountRef = ref(db, `${path}/${itemId}/likes`);
+
+            try {
+                if (isCurrentlyLiked) {
+                    remove(likedByRef);
+                    runTransaction(likesCountRef, (current) => Math.max(0, (current || 1) - 1));
+                } else {
+                    set(likedByRef, true);
+                    runTransaction(likesCountRef, (current) => (current || 0) + 1);
+                }
+            } catch (err) {}
+        };
+
+        window.toggleCommentBox = function(event, itemId) {
+            if (event) event.stopPropagation();
+            const box = document.getElementById(`comments-box-${itemId}`);
+            if (box) box.classList.toggle('show');
+        };
+
+        window.submitInlineComment = async function(event, itemId, path) {
+            if (event) event.stopPropagation();
+            const activeUserId = getActiveLoggedInUserId();
+            if (!activeUserId) return triggerSystemAlert("Sign In Required", "Please sign in to comment.", "💬");
+            
+            const inputEl = document.getElementById(`comment-input-${itemId}`);
+            if (!inputEl || !inputEl.value.trim()) return;
+            const commentText = inputEl.value.trim(); inputEl.value = '';
+            
+            const userFirstName = currentUserDisplayName.trim().split(' ')[0] || 'User';
+
+            try {
+                const commentId = Date.now().toString();
+                await set(ref(db, `${path}/${itemId}/comments/${commentId}`), {
+                    userId: activeUserId, 
+                    userName: userFirstName, 
+                    text: commentText, 
+                    timestamp: Date.now(),
+                    userPhoto: currentUserPhoto
+                });
+
+                const commentsCountRef = ref(db, `${path}/${itemId}/commentsCount`);
+                await runTransaction(commentsCountRef, current => (current || 0) + 1);
+
+                const listContainer = document.getElementById(`comments-list-${itemId}`);
+                if (listContainer) {
+                    const cItem = document.createElement('div'); 
+                    cItem.className = 'comment-preview-wrapper';
+                    
+                    const avatarHTML = currentUserPhoto 
+                        ? `<img src="${currentUserPhoto}" class="comment-user-avatar">` 
+                        : `<div class="comment-user-initial">${userFirstName.charAt(0)}</div>`;
+
+                    cItem.innerHTML = `${avatarHTML} <div class="comment-text-content"><strong>${userFirstName}:</strong> ${commentText}</div>`;
+                    listContainer.appendChild(cItem);
+                }
+                const cCountNode = document.getElementById(`comment-count-${itemId}`);
+                if (cCountNode) cCountNode.innerText = parseInt(cCountNode.innerText || '0', 10) + 1;
+            } catch (err) {}
+        };
+
+        function extractAllImages(item) {
+            let list = [];
+            if (item.imageUrl && typeof item.imageUrl === 'string') list.push(item.imageUrl.trim());
+            if (item.images) {
+                if (Array.isArray(item.images)) item.images.forEach(img => { if (typeof img === 'string' && !list.includes(img)) list.push(img.trim()); });
+                else if (typeof item.images === 'object') Object.values(item.images).forEach(img => { if (typeof img === 'string' && !list.includes(img)) list.push(img.trim()); });
+            }
+            return list.slice(0, 3);
+        }
+
+        function extractFullLocationString(item) {
+            let parts = [];
+            const locDetails = item.locationDetails || item;
+
+            if (locDetails.country) parts.push(locDetails.country);
+            if (locDetails.region) parts.push(locDetails.region);
+            if (locDetails.zone) parts.push(locDetails.zone);
+            if (locDetails.city) parts.push(locDetails.city);
+            if (locDetails.subcity) parts.push(locDetails.subcity);
+            if (locDetails.landmark || locDetails.uniqueName) parts.push(locDetails.landmark || locDetails.uniqueName);
+            
+            if (parts.length === 0) {
+                if (item.address) parts.push(item.address);
+                else if (item.location && typeof item.location === 'string') parts.push(item.location);
+            }
+
+            parts = [...new Set(parts.map(p => typeof p === 'string' ? p.trim() : p).filter(Boolean))];
+            return parts.length > 0 ? parts.join(', ') : 'Location not specified';
+        }
+
+        function buildCategorySpecsHTML(item) {
+            const specsObj = item.categorySpecificDetails || item.specifications || item.specs || item.details;
+            if (specsObj && typeof specsObj === 'object' && Object.keys(specsObj).length > 0) {
+                let html = `<div class="category-specs-container"><div class="category-specs-title">Property Specifications</div><div class="info-terms-list">`;
+                Object.keys(specsObj).slice(0, 3).forEach(key => {
+                    const val = specsObj[key];
+                    if (val !== undefined && val !== null && val !== '') {
+                        let displayVal = typeof val === 'object' ? JSON.stringify(val) : val;
+                        let displayKey = key.replace(/([A-Z])/g, ' $1').toLowerCase();
+                        html += `<div class="info-term-item"><span class="info-term-label">${displayKey}</span><span class="info-term-value">${displayVal}</span></div>`;
+                    }
+                });
+                return html + `</div></div>`;
+            }
+            return `<div class="category-specs-container"><div class="category-specs-title">Property Specifications</div><div style="font-size:11px; color:#64748B; font-weight: 600;">Standard property specifications apply.</div></div>`;
+        }
+
+        function buildSingleNewsCardHTML(item) {
+            const headline = item.title || "Rental Item";
+            const subCategoryText = item.rentalSubCategory || item.subCategory || item.rentalType || item.category || "Rental";
+            const allImages = extractAllImages(item);
+            
+            const authorId = item.userId || item.uid || item.postedBy || 'unknown';
+            const fallbackFullName = item.authorName || item.userName || item.displayName || item.fullName || item.firstName || 'User';
+            const fallbackFirstName = fallbackFullName.trim().split(' ')[0] || 'User';
+            const fallbackPhoto = item.userPhoto || item.photoURL || item.profilePicture || '';
+            
+            const fullLocationStr = extractFullLocationString(item);
+            const categorySpecsHTML = buildCategorySpecsHTML(item);
+            
+            const likeCount = typeof item.likes === 'number' ? item.likes : (item.likedBy ? Object.keys(item.likedBy).length : 0);
+            
+            const activeUserId = getActiveLoggedInUserId();
+            const isLikedByMe = !!(activeUserId && ((item.likedBy && item.likedBy[activeUserId]) || (typeof item.likes === 'object' && item.likes && item.likes[activeUserId])));
+            
+            const isOwner = activeUserId && (activeUserId === authorId || String(activeUserId).replace(/\D/g, '') === String(authorId).replace(/\D/g, ''));
+            const isFollowingAuthor = userFollowingSet.has(authorId);
+            
+            const commentsList = item.comments ? Object.values(item.comments) : [];
+            const commentCount = typeof item.commentsCount === 'number' ? item.commentsCount : commentsList.length;
+
+            let imageHTML = allImages.length > 0 ? `<div class="broadcast-image-frame"><div class="image-overlay-subcat-badge">${subCategoryText}</div><img src="${allImages[0]}" loading="lazy" decoding="async" onload="this.classList.add('loaded')"></div>` : "";
+
+            let distanceChipHTML = (isGpsActive && currentUserCoordinates && item._calculatedDistance !== undefined) 
+                ? `<span class="animated-distance-chip" onclick="triggerGpsAcquisition(event)"><span class="gps-dot"></span><span>${item._calculatedDistance < 1 ? `${Math.round(item._calculatedDistance * 1000)}m` : `${item._calculatedDistance.toFixed(1)}km`}</span></span>`
+                : `<span class="animated-distance-chip no-gps" onclick="triggerGpsAcquisition(event)"><span class="gps-dot"></span><span>GPS</span></span>`;
+            
+            let commentsPreviewHTML = commentsList.slice(-2).map(c => {
+                const avatarHTML = c.userPhoto 
+                    ? `<img src="${c.userPhoto}" class="comment-user-avatar">` 
+                    : `<div class="comment-user-initial">${(c.userName || 'U').charAt(0)}</div>`;
+                return `
+                    <div class="comment-preview-wrapper">
+                        ${avatarHTML}
+                        <div class="comment-text-content"><strong>${c.userName || 'User'}:</strong> ${c.text || ''}</div>
+                    </div>`;
+            }).join('');
+
+            return `
+                <div class="post-author-header">
+                    <div class="author-info-left" id="author-click-${item.id}" onclick="navigateToAuthorProfile(event, '${authorId}', '${fallbackFullName.replace(/'/g, "\\'")}')">
+                        <span id="author-avatar-${item.id}">
+                            ${fallbackPhoto ? `<img class="author-avatar" src="${fallbackPhoto}">` : `<div class="author-avatar">${fallbackFirstName.charAt(0).toUpperCase()}</div>`}
+                        </span>
+                        <div class="author-name-box">
+                            <span class="author-first-name" id="author-name-${item.id}">${fallbackFirstName}</span>
+                            <span class="author-sub-label">Rental Item</span>
+                        </div>
+                    </div>
+                    <div class="author-actions-right">
+                        ${distanceChipHTML}
+                        ${(!isOwner && authorId !== 'unknown') ? `<button class="btn-follow-author follow-btn-${authorId} ${isFollowingAuthor ? 'following' : ''}" onclick="toggleFollowUser(event, '${authorId}')">${isFollowingAuthor ? 'Following' : '+ Follow'}</button>` : ''}
+                        
+                        <button title="View Profile" class="btn-view-author-profile-icon" onclick="navigateToAuthorProfile(event, '${authorId}', '${fallbackFullName.replace(/'/g, "\\'")}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                ${imageHTML}
+                
+                <div class="clickable-news-content">
+                    <h2 class="broadcast-title">${headline}</h2>
+                    <div class="full-location-preview-text">Location: <span>${fullLocationStr}</span></div>
+                    ${categorySpecsHTML}
+                </div>
+                <div class="post-social-bar">
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <button class="social-action-btn ${isLikedByMe ? 'liked' : ''}" id="like-btn-${item.id}" onclick="toggleLikePost(event, '${item.id}', '${item._dbPath || 'posts'}')">
+                            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <span id="like-count-${item.id}">${likeCount}</span>
+                        </button>
+                        <button class="social-action-btn" onclick="toggleCommentBox(event, '${item.id}')">
+                            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <span id="comment-count-${item.id}">${commentCount}</span>
+                        </button>
+                    </div>
+                    <button class="btn-details-dark-flat" onclick="openFullNewsReader('${item.id}', '${item._dbPath || 'posts'}')">Details &rarr;</button>
+                </div>
+                <div class="quick-comments-preview" id="comments-box-${item.id}">
+                    <div id="comments-list-${item.id}">${commentsPreviewHTML}</div>
+                    <div class="comment-input-inline-box" onclick="event.stopPropagation()">
+                        <input type="text" class="comment-input-field" id="comment-input-${item.id}" placeholder="Add a comment..." />
+                        <button class="comment-submit-btn" onclick="submitInlineComment(event, '${item.id}', '${item._dbPath || 'posts'}')">Post</button>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+
+</body>
+</html>

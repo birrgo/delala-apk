@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Delala - Map View</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MapLibre GL CSS (Modern Vector Map) -->
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="news.css">
+    
+    <style>
+        :root {
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --primary-dark: #0F172A;
+            --primary-accent: #2563EB;
+            --bg-body: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --danger-color: #EF4444;
+            --danger-bg: #FEF2F2;
+            --danger-border: #FCA5A5;
+        }
+
+        * { font-family: var(--font-main); box-sizing: border-box; }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .map-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            background: #FFFFFF;
+        }
+
+        #rentalMap { 
+            width: 100vw;
+            height: 100vh; 
+        }
+
+        .top-right-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .map-close-btn {
+            background: #FFFFFF;
+            color: var(--primary-dark);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+        }
+
+        /* Distance Banner Floating Bar */
+        .distance-card-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.90);
+            color: #FFFFFF;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .distance-card-banner strong {
+            color: #38BDF8;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .map-gps-btn {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            z-index: 1000;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            color: #2563EB;
+            border: 2px solid #2563EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .map-gps-btn.tracking-active {
+            background: #2563EB;
+            color: #FFFFFF;
+            border-color: #2563EB;
+            animation: pulseGps 1.5s infinite;
+        }
+
+        @keyframes pulseGps {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+
+        .map-gps-btn:active { transform: scale(0.92); }
+        .map-gps-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+        /* Custom User Location Marker Pulsing Dot */
+        .user-location-dot {
+            width: 18px;
+            height: 18px;
+            background-color: #2563EB;
+            border: 3px solid #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .error-modal-card {
+            max-width: 380px;
+            text-align: center;
+            border: 1px solid var(--danger-border);
+        }
+
+        .error-badge-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--danger-bg);
+            color: var(--danger-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px auto 0 auto;
+        }
+
+        .error-badge-icon svg { width: 28px; height: 28px; stroke: currentColor; }
+
+        .error-modal-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-top: 8px;
+        }
+
+        .error-modal-msg {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .btn-error-dismiss {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--danger-color);
+            color: #FFFFFF;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="map-wrapper" id="mapContainer">
+        <!-- Road Distance Banner -->
+        <div class="distance-card-banner" id="distanceBanner">
+            <span>Distance to Post:</span> <strong id="roadDistanceVal">Calculating...</strong>
+        </div>
+
+        <div class="top-right-controls">
+            <button type="button" class="map-close-btn" id="closeMapFullscreenBtn" title="Close Map">✕</button>
+        </div>
+
+        <div id="rentalMap"></div>
+        <button type="button" class="map-gps-btn" id="mapGpsBtn" title="Toggle Real-Time Tracking">
+            <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+        </button>
+    </div>
+
+    <!-- ERROR MODAL -->
+    <div class="modal-overlay" id="errorModalOverlay">
+        <div class="modal-card error-modal-card">
+            <div class="modal-body" style="padding: 24px 20px 16px;">
+                <div class="error-badge-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <div class="error-modal-title" id="errorModalTitle">GPS Error</div>
+                <p class="error-modal-msg" id="errorModalMessage">Unable to retrieve real-time location.</p>
+            </div>
+            <div class="modal-footer" style="padding: 12px 20px 20px; background: transparent; border: none;">
+                <button type="button" class="btn-error-dismiss" id="dismissErrorBtn">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MapLibre GL JS Library -->
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+    <!-- Firebase App and Database SDK Modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, child, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXoIY6Q1Cf3Dw0jU5VImIqxchW79OME6Q",
+            authDomain: "delala-1b582.firebaseapp.com",
+            databaseURL: "https://delala-1b582-default-rtdb.firebaseio.com",
+            projectId: "delala-1b582",
+            storageBucket: "delala-1b582.firebasestorage.app",
+            messagingSenderId: "1073041850834",
+            appId: "1:1073041850834:web:fe5d0095c3ff1b238f480b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let map, userMarker, rentalMarker;
+        let watchPositionId = null;
+
+        let rentalLat = null;
+        let rentalLng = null;
+        let postId = null;
+        let itemPath = null;
+        let postTitle = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Standardize item ID and collection path parsing
+            postId = urlParams.get('id') || urlParams.get('postId');
+            itemPath = urlParams.get('path') || 'posts';
+            
+            let queryLat = parseFloat(urlParams.get('lat'));
+            let queryLng = parseFloat(urlParams.get('lng'));
+            postTitle = urlParams.get('title') || 'Rental Post';
+
+            // Configure close button back-navigation URL dynamically
+            const closeBtn = document.getElementById('closeMapFullscreenBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    if (postId) {
+                        window.location.href = `rentalfull.html?id=${encodeURIComponent(postId)}&path=${encodeURIComponent(itemPath)}`;
+                    } else if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'rental.html';
+                    }
+                });
+            }
+
+            initMapLibreMap();
+            
+            if (!isNaN(queryLat) && !isNaN(queryLng)) {
+                setRentalPostLocation(queryLat, queryLng, postTitle);
+                startRealtimeTracking();
+            } else if (postId) {
+                fetchRentalDataFromFirebase(postId, itemPath);
+            } else {
+                startRealtimeTracking();
+            }
+
+            document.getElementById('mapGpsBtn').addEventListener('click', toggleRealtimeTracking);
+            document.getElementById('dismissErrorBtn').addEventListener('click', () => {
+                document.getElementById('errorModalOverlay').style.display = 'none';
+            });
+        });
+
+        function initMapLibreMap() {
+            map = new maplibregl.Map({
+                container: 'rentalMap',
+                style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+                center: [38.7881, 9.0034],
+                zoom: 14,
+                attributionControl: false
+            });
+
+            const userDot = document.createElement('div');
+            userDot.className = 'user-location-dot';
+
+            userMarker = new maplibregl.Marker({ element: userDot })
+                .setLngLat([38.7881, 9.0034])
+                .addTo(map);
+        }
+
+        function setRentalPostLocation(lat, lng, title) {
+            rentalLat = lat;
+            rentalLng = lng;
+
+            if (rentalMarker) rentalMarker.remove();
+
+            const popup = new maplibregl.Popup({ offset: 25 })
+                .setHTML(`<b>${title}</b><br>Saved Post Location`);
+
+            rentalMarker = new maplibregl.Marker({ color: '#EF4444' })
+                .setLngLat([rentalLng, rentalLat])
+                .setPopup(popup)
+                .addTo(map);
+
+            rentalMarker.togglePopup();
+            map.flyTo({ center: [rentalLng, rentalLat], zoom: 15 });
+        }
+
+        async function fetchRentalDataFromFirebase(id, path) {
+            try {
+                const dbRef = ref(db);
+                let targetPath = path || 'posts';
+                let snapshot = await get(child(dbRef, `${targetPath}/${id}`));
+
+                // Fallback check
+                if (!snapshot.exists()) {
+                    targetPath = targetPath === 'posts' ? 'delalaListings' : 'posts';
+                    snapshot = await get(child(dbRef, `${targetPath}/${id}`));
+                }
+
+                if (snapshot.exists()) {
+                    const post = snapshot.val();
+                    let lat = post.location?.latitude || post.latitude;
+                    let lng = post.location?.longitude || post.longitude;
+                    if (lat && lng) {
+                        setRentalPostLocation(lat, lng, post.title || 'Rental Item');
+                    }
+                }
+            } catch (err) {
+                console.error("Firebase read error:", err);
+            } finally {
+                startRealtimeTracking();
+            }
+        }
+
+        function toggleRealtimeTracking() {
+            if (watchPositionId !== null) {
+                stopRealtimeTracking();
+            } else {
+                startRealtimeTracking();
+            }
+        }
+
+        function startRealtimeTracking() {
+            if (!navigator.geolocation) {
+                showErrorModal("GPS Error", "Geolocation is not supported by your device or browser.");
+                return;
+            }
+
+            const gpsBtn = document.getElementById('mapGpsBtn');
+            gpsBtn.classList.add('tracking-active');
+
+            if (watchPositionId !== null) {
+                navigator.geolocation.clearWatch(watchPositionId);
+            }
+
+            const geoOptions = {
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 1000
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => processGpsSuccess(pos),
+                (err) => {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => processGpsSuccess(pos),
+                        (err2) => handleGpsError(err2),
+                        { enableHighAccuracy: false, timeout: 15000, maximumAge: 30000 }
+                    );
+                },
+                geoOptions
+            );
+
+            watchPositionId = navigator.geolocation.watchPosition(
+                (pos) => processGpsSuccess(pos),
+                (err) => console.warn("Watch position update warning:", err),
+                geoOptions
+            );
+        }
+
+        function processGpsSuccess(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            if (map && userMarker) {
+                userMarker.setLngLat([lng, lat]);
+            }
+
+            if (rentalLat && rentalLng) {
+                calculateAndDrawRoadRoute(lat, lng, rentalLat, rentalLng);
+            } else if (map) {
+                map.flyTo({ center: [lng, lat], zoom: 17 });
+            }
+        }
+
+        function calculateAndDrawRoadRoute(userLat, userLng, destLat, destLng) {
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${userLng},${userLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+
+            fetch(osrmUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.routes && data.routes.length > 0) {
+                        const route = data.routes[0];
+                        const distanceInKm = (route.distance / 1000).toFixed(2);
+
+                        document.getElementById('roadDistanceVal').innerHTML = `<strong>${distanceInKm} km</strong>`;
+                        document.getElementById('distanceBanner').style.display = 'flex';
+
+                        const geojson = {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': route.geometry
+                        };
+
+                        if (map.getSource('route')) {
+                            map.getSource('route').setData(geojson);
+                        } else {
+                            map.addSource('route', {
+                                'type': 'geojson',
+                                'data': geojson
+                            });
+
+                            map.addLayer({
+                                'id': 'route',
+                                'type': 'line',
+                                'source': 'route',
+                                'layout': {
+                                    'line-join': 'round',
+                                    'line-cap': 'round'
+                                },
+                                'paint': {
+                                    'line-color': '#2563EB',
+                                    'line-width': 5,
+                                    'line-opacity': 0.9
+                                }
+                            });
+                        }
+
+                        const bounds = new maplibregl.LngLatBounds()
+                            .extend([userLng, userLat])
+                            .extend([destLng, destLat]);
+
+                        map.fitBounds(bounds, { padding: 80 });
+                    }
+                })
+                .catch(err => console.error("OSRM Route Error:", err));
+        }
+
+        function handleGpsError(err) {
+            stopRealtimeTracking();
+            if (err.code === 1) {
+                showErrorModal("Permission Blocked", "Location permission was denied. Please enable location access in settings.");
+            } else if (err.code === 2) {
+                showErrorModal("GPS Signal Unavailable", "Unable to acquire a valid GPS fix.");
+            } else {
+                showErrorModal("GPS Connection Timeout", "Real-time location request timed out.");
+            }
+        }
+
+        function stopRealtimeTracking() {
+            if (watchPositionId !== null) {
+                navigator.geolocation.clearWatch(watchPositionId);
+                watchPositionId = null;
+            }
+            document.getElementById('mapGpsBtn').classList.remove('tracking-active');
+        }
+
+        function showErrorModal(title, message) {
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalMessage').innerText = message;
+            document.getElementById('errorModalOverlay').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

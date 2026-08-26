@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Delala - Edit Rental Location</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="news.css">
+
+    <script>
+        if (window.self !== window.top) {
+            window.top.location.href = window.self.location.href;
+        }
+    </script>
+    
+    <style>
+        :root {
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --primary-dark: #0F172A;
+            --primary-accent: #2563EB;
+            --bg-body: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --danger-color: #EF4444;
+            --danger-bg: #FEF2F2;
+            --danger-border: #FCA5A5;
+        }
+
+        * { font-family: var(--font-main); box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-left-group { display: flex; align-items: center; gap: 10px; }
+
+        .header-title-text { font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; }
+        .header-live-clock-badge { font-size: 11px; font-weight: 700; color: var(--text-muted); background: #F1F5F9; padding: 4px 8px; border-radius: 6px; }
+
+        .post-form-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            margin: 12px 16px 24px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-color);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step-node {
+            position: relative;
+            z-index: 2;
+            background: #F1F5F9;
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .step-node.active {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.08);
+        }
+
+        .form-step-page { display: none; }
+        .form-step-page.active { display: block; }
+
+        .step-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 18px;
+            border-bottom: 1px solid #F1F5F9;
+            padding-bottom: 10px;
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #F8FAFC;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-dark);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+        }
+
+        .form-input[readonly] {
+            background-color: #F1F5F9;
+            color: #475569;
+            cursor: not-allowed;
+            border-color: #CBD5E1;
+        }
+
+        /* Styling specifically for the Geohash preview to make it stand out subtly */
+        .geohash-input {
+            background-color: #EFF6FF !important;
+            color: var(--primary-accent) !important;
+            border-color: #BFDBFE !important;
+            font-weight: 700 !important;
+            letter-spacing: 1px;
+            font-family: monospace;
+        }
+
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        .detect-loc-btn {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #EFF6FF;
+            color: var(--primary-accent);
+            border: 1px solid #BFDBFE;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 14px;
+            text-decoration: none;
+        }
+
+        .leaflet-control-container .leaflet-control-attribution { display: none !important; }
+
+        .step-actions { display: flex; gap: 12px; margin-top: 22px; }
+
+        .submit-post-btn {
+            flex: 1;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--primary-dark);
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+        .submit-post-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: #FFFFFF;
+            padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-item.active { color: #0F172A; }
+        .nav-item .icon-bg svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .nav-item-post-center {
+            position: relative;
+            top: -14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            z-index: 1010;
+        }
+
+        .post-fab-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E293B, #334155);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 0 0 5px #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .post-fab-btn svg { width: 22px; height: 22px; stroke: #ffffff; stroke-width: 2.8; }
+        .post-fab-label { margin-top: 3px; font-size: 10px; font-weight: 700; color: #334155; }
+        .verified-footer-shield { text-align: center; padding: 16px 0 80px; }
+        .footer-shield-text { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 10000000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #F8FAFC;
+        }
+
+        .error-modal-card {
+            max-width: 380px;
+            text-align: center;
+            border: 1px solid var(--danger-border);
+        }
+
+        .error-badge-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--danger-bg);
+            color: var(--danger-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px auto 0 auto;
+        }
+
+        .error-badge-icon svg { width: 28px; height: 28px; stroke: currentColor; }
+
+        .error-modal-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-top: 8px;
+        }
+
+        .error-modal-msg {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .btn-error-dismiss {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--danger-color);
+            color: #FFFFFF;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-view">
+        <header class="nav-header">
+            <div class="header-left-group">
+                <h1 class="header-title-text">Edit Post Location</h1>
+            </div>
+            <div class="header-live-clock-badge" id="topCornerLiveClock">00:00:00 AM</div>
+        </header>
+
+        <main class="app-content">
+            <form class="post-form-card" id="step2Form">
+                <div class="step-indicator">
+                    <div class="step-node" id="node-1">
+                        <a href="javascript:void(0)" id="node-1-link" style="text-decoration:none; color:inherit;">1</a>
+                    </div>
+                    <div class="step-node" id="node-2">2</div>
+                    <div class="step-node active" id="node-3">3</div>
+                    <div class="step-node" id="node-4">4</div>
+                </div>
+
+                <!-- PAGE 3 -->
+                <div class="form-step-page active" id="stepPage3">
+                    <div class="step-title">Step 3: Edit Location Details</div>
+
+                    <a href="#" class="detect-loc-btn" id="gpsDetectBtn">
+                        📡 Map & GPS Location
+                    </a>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="locCountry">Country (Auto GPS)</label>
+                            <input type="text" class="form-input" id="locCountry" readonly placeholder="Detect via GPS..." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="locRegion">Region (Auto GPS)</label>
+                            <input type="text" class="form-input" id="locRegion" readonly placeholder="Detect via GPS..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="locZone">Zone / Area (Auto GPS)</label>
+                            <input type="text" class="form-input" id="locZone" readonly placeholder="Detect via GPS..." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="locCity">City / Town (Auto GPS)</label>
+                            <input type="text" class="form-input" id="locCity" readonly placeholder="Detect via GPS..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="locSubcity">Subcity / Woreda *</label>
+                            <input type="text" class="form-input" id="locSubcity" placeholder="Auto-detected or enter manually" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="locUniqueName">Unique Place / Landmark *</label>
+                            <input type="text" class="form-input" id="locUniqueName" placeholder="Enter landmark manually" required>
+                        </div>
+                    </div>
+                    
+                    <!-- NEW: Geohash Preview Box -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="locGeohash">Generated Geohash (Auto GPS)</label>
+                            <input type="text" class="form-input geohash-input" id="locGeohash" readonly placeholder="Requires GPS / Map detection...">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="rentalLat">
+                    <input type="hidden" id="rentalLng">
+
+                    <div class="step-actions">
+                        <button type="button" class="submit-post-btn" id="btnNext3">
+                            Next: Contact 
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <footer class="verified-footer-shield">
+                <span class="footer-shield-text">Delala Marketplace Verified</span>
+            </footer>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="rental.html" class="nav-item">
+                <div class="icon-bg"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+                <span>Rental</span>
+            </a>
+            <a href="selling.html" class="nav-item">
+                <div class="icon-bg"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></div>
+                <span>Selling</span>
+            </a>
+            <a href="rentalpost.html" class="nav-item-post-center active">
+                <div class="post-fab-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <span class="post-fab-label">Post</span>
+            </a>
+            <a href="vacancy.html" class="nav-item">
+                <div class="icon-bg"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
+                <span>Vacancy</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <div class="icon-bg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- ERROR MODAL -->
+    <div class="modal-overlay" id="errorModalOverlay">
+        <div class="modal-card error-modal-card">
+            <div class="modal-body" style="padding: 24px 20px 16px;">
+                <div class="error-badge-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <div class="error-modal-title" id="errorModalTitle">Missing Information</div>
+                <p class="error-modal-msg" id="errorModalMessage">Please review required details and try again.</p>
+            </div>
+            <div class="modal-footer" style="padding: 12px 20px 20px; background: transparent; border: none;">
+                <button type="button" class="btn-error-dismiss" id="dismissErrorBtn">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Primary DB Config
+        const primaryConfig = {
+            apiKey: "AIzaSyBXoIY6Q1Cf3Dw0jU5VImIqxchW79OME6Q",
+            authDomain: "delala-1b582.firebaseapp.com",
+            databaseURL: "https://delala-1b582-default-rtdb.firebaseio.com",
+            projectId: "delala-1b582",
+            storageBucket: "delala-1b582.firebasestorage.app",
+            messagingSenderId: "1073041850834",
+            appId: "1:1073041850834:web:fe5d0095c3ff1b238f480b"
+        };
+        const app = initializeApp(primaryConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Service DB Config
+        const serviceDbConfig = {
+            apiKey: "AIzaSyD6vEll_UDNulGF5BalpwhR3SbfME7CJCw",
+            authDomain: "tsestlive.firebaseapp.com",
+            databaseURL: "https://tsestlive-default-rtdb.firebaseio.com",
+            projectId: "tsestlive"
+        };
+        const serviceApp = initializeApp(serviceDbConfig, "ServiceApp");
+        const serviceDb = getDatabase(serviceApp);
+
+        // URL Parameters Extraction
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlPostId = urlParams.get('postId');
+        const urlDbSource = urlParams.get('db') || 'primary';
+        const activeDb = (urlDbSource === 'service') ? serviceDb : db;
+
+        let currentUser = null;
+        let isLocationTracked = false;
+
+        function sanitizePath(value) {
+            return (value || "").toString().replace(/[.#$\[\]]/g, "_");
+        }
+
+        function getAccountDetails() {
+            const phone = localStorage.getItem('auth_session_phone') || localStorage.getItem('userPhone') || "";
+            let id = currentUser ? currentUser.uid : (localStorage.getItem('auth_session_user_id') || localStorage.getItem('userId'));
+            
+            if (!id && phone) id = sanitizePath(phone);
+            else if (!id) id = "anonymous";
+            else id = sanitizePath(id);
+
+            return { phone, id };
+        }
+
+        // --- Geohash Generator (Used as a fallback if missing) ---
+        function generateGeohash(latitude, longitude, precision = 10) {
+            const BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
+            let isEven = true;
+            let lat = [-90.0, 90.0];
+            let lon = [-180.0, 180.0];
+            let bit = 0;
+            let ch = 0;
+            let geohash = "";
+
+            while (geohash.length < precision) {
+                let mid;
+                if (isEven) {
+                    mid = (lon[0] + lon[1]) / 2;
+                    if (longitude > mid) { ch |= (1 << (4 - bit)); lon[0] = mid; }
+                    else { lon[1] = mid; }
+                } else {
+                    mid = (lat[0] + lat[1]) / 2;
+                    if (latitude > mid) { ch |= (1 << (4 - bit)); lat[0] = mid; }
+                    else { lat[1] = mid; }
+                }
+                isEven = !isEven;
+                if (bit < 4) { bit++; }
+                else { geohash += BASE32[ch]; bit = 0; ch = 0; }
+            }
+            return geohash;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initClock();
+            
+            // Set dynamic return URL for Map
+            const mapReturnParams = `?postId=${urlPostId}&db=${urlDbSource}`;
+            document.getElementById('gpsDetectBtn').href = `editmap1.html?returnUrl=editrentalpost1.html${mapReturnParams.replace('?', '&')}`;
+
+            loadSavedFormData();
+            
+            onAuthStateChanged(auth, (user) => { 
+                currentUser = user; 
+            });
+
+            document.getElementById('gpsDetectBtn').addEventListener('click', () => {
+                savePart2FormData();
+            });
+
+            document.getElementById('btnNext3').addEventListener('click', () => {
+                const country = document.getElementById('locCountry').value.trim();
+                const region = document.getElementById('locRegion').value.trim();
+                const zone = document.getElementById('locZone').value.trim();
+                const city = document.getElementById('locCity').value.trim();
+                const subcity = document.getElementById('locSubcity').value.trim();
+                const uniqueName = document.getElementById('locUniqueName').value.trim();
+
+                if (!country || !region || !zone || !city || !isLocationTracked) {
+                    showErrorModal("Location Required", "Please use the map to set your exact location.");
+                    return;
+                }
+
+                if (!subcity || !uniqueName) {
+                    showErrorModal("Missing Fields", "Please make sure Subcity and Unique Place / Landmark are filled out.");
+                    return;
+                }
+
+                savePart2FormData();
+                // Direct to the final Edit Contact/Publish Review page
+                window.location.href = `editpub.html?postId=${urlPostId}&db=${urlDbSource}`;
+            });
+
+            document.getElementById('dismissErrorBtn').addEventListener('click', closeErrorModal);
+
+            const formInputs = document.querySelectorAll('.form-input');
+            formInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    savePart2FormData();
+                });
+            });
+        });
+
+        function savePart2FormData() {
+            const acc = getAccountDetails();
+            const rawPart2 = sessionStorage.getItem('delalaEditDraftPart2');
+            let existingData = {};
+            if (rawPart2) {
+                try { existingData = JSON.parse(rawPart2); } catch(e) {}
+            }
+
+            const formData = {
+                ...existingData,
+                postedByPhone: acc.phone,
+                userId: acc.id,
+                country: document.getElementById('locCountry').value,
+                region: document.getElementById('locRegion').value,
+                zone: document.getElementById('locZone').value,
+                city: document.getElementById('locCity').value,
+                subcity: document.getElementById('locSubcity').value,
+                uniqueName: document.getElementById('locUniqueName').value,
+                geohash: document.getElementById('locGeohash').value, // Save the geohash
+                lat: document.getElementById('rentalLat').value,
+                lng: document.getElementById('rentalLng').value
+            };
+            sessionStorage.setItem('delalaEditDraftPart2', JSON.stringify(formData));
+        }
+
+        async function loadSavedFormData() {
+            // Priority 1: Map GPS Return Payload
+            const rawGps = sessionStorage.getItem('selectedGpsLocation');
+            let mappedFromGps = false;
+
+            if (rawGps) {
+                try {
+                    const parsed = JSON.parse(rawGps);
+                    if (parsed.lat && parsed.lng) {
+                        document.getElementById('rentalLat').value = Number(parsed.lat).toFixed(6);
+                        document.getElementById('rentalLng').value = Number(parsed.lng).toFixed(6);
+                        isLocationTracked = true;
+                        mappedFromGps = true;
+                        
+                        // Populate Geohash directly if generated from the map page
+                        if (parsed.geohash) {
+                            document.getElementById('locGeohash').value = parsed.geohash;
+                        }
+                    }
+                    if (parsed.address) {
+                        const addr = parsed.address;
+                        document.getElementById('locCountry').value = addr.country || '';
+                        document.getElementById('locRegion').value = addr.region || '';
+                        document.getElementById('locZone').value = addr.zone || '';
+                        document.getElementById('locCity').value = addr.city || '';
+                        if (addr.subcity) document.getElementById('locSubcity').value = addr.subcity;
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            // Priority 2: Session Draft
+            const rawPart2 = sessionStorage.getItem('delalaEditDraftPart2');
+            if (rawPart2 && !mappedFromGps) {
+                try {
+                    const p2 = JSON.parse(rawPart2);
+                    if (p2.subcity && !document.getElementById('locSubcity').value) document.getElementById('locSubcity').value = p2.subcity;
+                    if (p2.uniqueName) document.getElementById('locUniqueName').value = p2.uniqueName;
+                    if (p2.geohash) document.getElementById('locGeohash').value = p2.geohash; // Load drafted Geohash
+                    
+                    if (p2.lat && p2.lng) {
+                        document.getElementById('rentalLat').value = p2.lat;
+                        document.getElementById('rentalLng').value = p2.lng;
+                        isLocationTracked = true;
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            // Priority 3: Fetch directly from Firebase if no existing Session Storage exists
+            if (urlPostId && !rawPart2 && !mappedFromGps) {
+                try {
+                    const postRef = ref(activeDb, `posts/${urlPostId}`);
+                    const snapshot = await get(postRef);
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        const loc = data.locationDetails || data.location || {};
+                        
+                        document.getElementById('locCountry').value = loc.country || '';
+                        document.getElementById('locRegion').value = loc.region || '';
+                        document.getElementById('locZone').value = loc.zone || '';
+                        document.getElementById('locCity').value = loc.city || '';
+                        document.getElementById('locSubcity').value = loc.subcity || '';
+                        document.getElementById('locUniqueName').value = loc.uniqueName || data.uniqueName || '';
+                        
+                        // Load Geohash from Firebase if it exists
+                        if (data.geohash) {
+                            document.getElementById('locGeohash').value = data.geohash;
+                        }
+
+                        if (data.location && data.location.latitude) {
+                            document.getElementById('rentalLat').value = data.location.latitude;
+                            document.getElementById('rentalLng').value = data.location.longitude;
+                            isLocationTracked = true;
+                        }
+
+                        // Immediately establish session state so edits aren't wiped
+                        savePart2FormData();
+                    }
+                } catch (error) {
+                    console.error("Failed to load existing location data from Firebase", error);
+                }
+            }
+            
+            // Fallback: If we have coordinates but still no geohash, generate it on the fly
+            const finalLat = document.getElementById('rentalLat').value;
+            const finalLng = document.getElementById('rentalLng').value;
+            const geohashInput = document.getElementById('locGeohash');
+            
+            if (finalLat && finalLng && !geohashInput.value) {
+                geohashInput.value = generateGeohash(parseFloat(finalLat), parseFloat(finalLng));
+                savePart2FormData(); // resave it to draft
+            }
+        }
+
+        function showErrorModal(title, message) {
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalMessage').innerText = message;
+            document.getElementById('errorModalOverlay').style.display = 'flex';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModalOverlay').style.display = 'none';
+        }
+
+        function initClock() {
+            const node = document.getElementById('topCornerLiveClock');
+            setInterval(() => {
+                if (node) node.innerText = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

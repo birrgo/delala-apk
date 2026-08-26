@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hulum - Post Selling Item</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="news.css">
+    
+    <!-- Leaflet OpenStreetMap CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    
+    <style>
+        .post-form-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--card-shadow, 0 4px 12px rgba(0,0,0,0.05));
+            border: 1px solid var(--border-light, #E2E8F0);
+            margin-top: 12px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-dark, #0F172A);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light, #E2E8F0);
+            background: var(--bg-light, #F8FAFC);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark, #0F172A);
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--primary-burgundy, #0F172A);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        /* Leaflet Map Styling */
+        #sellingMap {
+            width: 100%;
+            height: 220px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light, #E2E8F0);
+            margin-bottom: 8px;
+            z-index: 1;
+        }
+
+        .map-hint {
+            font-size: 10px;
+            color: #64748B;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .submit-post-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: var(--metallic-sheen, linear-gradient(135deg, #1E293B, #334155));
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        .submit-post-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Standardized Light Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: #FFFFFF;
+            padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid #E2E8F0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-item.active {
+            color: #0F172A;
+        }
+
+        .nav-item .icon-bg svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Standardized Light Theme Curved Center FAB Button */
+        .nav-item-post-center {
+            position: relative;
+            top: -14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            z-index: 1010;
+        }
+
+        .post-fab-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E293B, #334155);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 0 0 5px #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-item-post-center.active .post-fab-btn {
+            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.35), 0 0 0 5px #FFFFFF;
+        }
+
+        .post-fab-btn:active {
+            transform: scale(0.92);
+        }
+
+        .post-fab-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: #ffffff;
+            stroke-width: 2.8;
+        }
+
+        .post-fab-label {
+            margin-top: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #334155;
+            transition: color 0.2s ease;
+        }
+
+        .nav-item-post-center.active .post-fab-label {
+            color: #0F172A; /* Bold/dark active color for Post label */
+            font-weight: 800;
+        }
+
+        /* Coming Soon App Popup Styling */
+        .custom-popup-overlay {
+            position: fixed;
+            top: 45px;      /* Further reduced to completely close the white gap */
+            bottom: 95px;   
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 130px; /* Slightly increased to push the card higher */
+            z-index: 900;   
+            opacity: 1; /* Visible by default */
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .custom-popup-overlay.hide-popup {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .custom-popup-modal {
+            background: #ffffff;
+            width: 85%;
+            max-width: 320px;
+            border-radius: 22px;
+            padding: 16px 20px 20px; 
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(0) scale(1); 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
+        }
+        
+        .popup-top-brand {
+            font-size: 14px; 
+            font-weight: 800;
+            color: #0F2C59;
+            margin: 0 0 2px 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .popup-status-icon {
+            font-size: 34px; 
+            display: inline-block;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+
+        .popup-main-title {
+            font-size: 18px; 
+            font-weight: 800;
+            color: #0F172A;
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .popup-body-desc {
+            font-size: 13.5px; 
+            color: #64748B;
+            margin: 0;
+            line-height: 1.4; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .popup-amharic-desc {
+            font-size: 13px; 
+            color: #475569;
+            margin: 0;
+            line-height: 1.4; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .popup-dismiss-action {
+            background: #0F2C59;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px; 
+            width: 100%;
+            font-size: 14.5px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 12px rgba(15, 44, 89, 0.2);
+            margin-top: 8px; 
+        }
+
+        .popup-dismiss-action:active {
+            background: #081B38;
+            transform: scale(0.97);
+        }
+        
+        .popup-divider {
+            border: none;
+            border-top: 1px solid #E2E8F0;
+            width: 100%;
+            margin: 4px 0; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-view">
+        <!-- New Hulum Gebeya Popup -->
+        <div class="custom-popup-overlay" id="customPopupModule">
+            <div class="custom-popup-modal">
+                <h4 class="popup-top-brand">Hulum Gebeya | ሁሉም ገበያ</h4>
+                <span class="popup-status-icon" id="popupIconNode">🚀</span>
+                
+                <h3 class="popup-main-title" id="popupTitleNode">Coming Soon!</h3>
+                <p class="popup-body-desc" id="popupDescNode">
+                    The Future of Shopping is Almost Here! We are building a massive, all-in-one marketplace just for you. Whether you want to discover great deals or start selling your own products to a huge audience, Hulum Gebeya is the place to do it. Everything you want, for everyone. Stay tuned!
+                </p>
+                
+                <hr class="popup-divider">
+                
+                <h3 class="popup-main-title">በቅርብ ቀን ይጠብቁን!</h3>
+                <p class="popup-amharic-desc">
+                    ዘመናዊው የግብይት ስፍራችን በቅርቡ ይከፈታል! የሚፈልጉትን ማንኛውንም ዕቃ በቀላሉ የሚገዙበት፣ እንዲሁም የራስዎን ምርቶች ለብዙሃን የሚያቀርቡበትን ግዙፍ እና ዘመናዊ የገበያ ስፍራ እየገነባን ነው። ሁሉም ነገር ለሁሉም ሰው የተዘጋጀበት — ሁሉም ገበያ! ለትልቅ ግብይት ዝግጁ ይሁኑ!
+                </p>
+                
+                <button class="popup-dismiss-action" id="closePopupBtn">Got it</button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="nav-header">
+            <div class="header-left-group">
+                <h1 class="header-title-text">Post Item for Sale</h1>
+            </div>
+            
+            <div class="header-live-clock-badge" id="topCornerLiveClock">00:00:00 AM</div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-content">
+            <form class="post-form-card" id="createSellingPostForm">
+                
+                <!-- 1. Category Sub-Type -->
+                <div class="form-group">
+                    <label class="form-label" for="itemCategory">Item Category</label>
+                    <select class="form-select" id="itemCategory" required>
+                        <option value="Electronics">Electronics & Tech</option>
+                        <option value="Vehicles">Vehicles & Parts</option>
+                        <option value="Real Estate">Real Estate / Land</option>
+                        <option value="Fashion">Fashion & Clothing</option>
+                        <option value="Home & Furniture">Home & Furniture</option>
+                        <option value="Other Selling">Other Item</option>
+                    </select>
+                </div>
+
+                <!-- 2. Listing Title -->
+                <div class="form-group">
+                    <label class="form-label" for="postTitle">Title / Item Name</label>
+                    <input type="text" class="form-input" id="postTitle" placeholder="e.g., iPhone 13 Pro Max 256GB" required>
+                </div>
+
+                <!-- 3. Price & Item Condition -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="sellingPrice">Price (ETB)</label>
+                        <input type="number" class="form-input" id="sellingPrice" placeholder="e.g. 65000" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="itemCondition">Condition</label>
+                        <select class="form-select" id="itemCondition" required>
+                            <option value="Brand New">Brand New</option>
+                            <option value="Slightly Used">Slightly Used</option>
+                            <option value="Used">Used</option>
+                            <option value="Refurbished">Refurbished</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 4. Interactive Pickup/Location Map -->
+                <div class="form-group">
+                    <label class="form-label">Pickup / Location Pin</label>
+                    <span class="map-hint">Tap on the map to set pickup location or drag the marker</span>
+                    <div id="sellingMap"></div>
+                    
+                    <div class="form-row" style="margin-top: 8px;">
+                        <input type="text" class="form-input" id="sellingLat" placeholder="Latitude" readonly required>
+                        <input type="text" class="form-input" id="sellingLng" placeholder="Longitude" readonly required>
+                    </div>
+                </div>
+
+                <!-- 5. Description -->
+                <div class="form-group">
+                    <label class="form-label" for="postContent">Item Details & Specs</label>
+                    <textarea class="form-textarea" id="postContent" placeholder="Describe specification, warranty, reason for selling, or negotiation options..." required></textarea>
+                </div>
+
+                <!-- 6. Media & Contact -->
+                <div class="form-group">
+                    <label class="form-label" for="postImageUrl">Product Image URL (Optional)</label>
+                    <input type="url" class="form-input" id="postImageUrl" placeholder="https://example.com/product.jpg">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="postRedirectUrl">Contact Link / Telegram / Phone</label>
+                    <input type="url" class="form-input" id="postRedirectUrl" placeholder="https://t.me/username or tel:+251..." required>
+                </div>
+
+                <button type="submit" class="submit-post-btn" id="submitBtn">Publish Selling Item</button>
+            </form>
+
+            <footer class="verified-footer-shield">
+                <span class="footer-shield-text">Hulum Secure Matrix Verified</span>
+            </footer>
+        </main>
+
+        <!-- Matched Bottom Navigation Menu -->
+        <nav class="bottom-nav">
+            <a id="nav-rental" href="rental.html" class="nav-item" data-filter="Rental">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <span>Rental</span>
+            </a>
+
+            <!-- Removed "active" class from Selling -->
+            <a id="nav-selling" href="selling.html" class="nav-item" data-filter="Selling">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                </div>
+                <span>Selling</span>
+            </a>
+
+            <!-- Ensured "active" is on Post -->
+            <a id="nav-post" href="sellingpost.html" class="nav-item-post-center active" aria-label="Post Item">
+                <div class="post-fab-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+                <span class="post-fab-label">Post</span>
+            </a>
+
+            <!-- Changed from Vacancy to Service -->
+            <a id="nav-service" href="service.html" class="nav-item" data-filter="Service">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </div>
+                <span>Service</span>
+            </a>
+
+            <a id="nav-profile" href="profile.html" class="nav-item" data-filter="Profile">
+                <div class="icon-bg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Leaflet OpenStreetMap JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9rJzhpR8IV0sTTgPOezZoh3qJpvI6Gjk",
+            authDomain: "hulum-e358c.firebaseapp.com",
+            databaseURL: "https://hulum-e358c-default-rtdb.firebaseio.com",
+            projectId: "hulum-e358c",
+            storageBucket: "hulum-e358c.firebasestorage.app",
+            messagingSenderId: "678316597629",
+            appId: "1:678316597629:web:dc6af499b8054a424aac14",
+            measurementId: "G-097P51SP2B"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let map, marker;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initiateLiveInterfaceClocks();
+            initLeafletMap();
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+            });
+
+            // Redirect to post.html when "Got it" is clicked
+            const closeBtn = document.getElementById('closePopupBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    window.location.href = 'post.html';
+                });
+            }
+
+            const postForm = document.getElementById('createSellingPostForm');
+            if (postForm) {
+                postForm.addEventListener('submit', handleFormSubmit);
+            }
+        });
+
+        function initiateLiveInterfaceClocks() {
+            const cornerClockNode = document.getElementById('topCornerLiveClock');
+            setInterval(() => {
+                const now = new Date();
+                if (cornerClockNode) {
+                    cornerClockNode.innerText = now.toLocaleTimeString(undefined, {
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                    });
+                }
+            }, 1000);
+        }
+
+        function initLeafletMap() {
+            const defaultLat = 9.0300;
+            const defaultLng = 38.7400;
+
+            map = L.map('sellingMap').setView([defaultLat, defaultLng], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+
+            updateLocationInputs(defaultLat, defaultLng);
+
+            marker.on('dragend', function () {
+                const latLng = marker.getLatLng();
+                updateLocationInputs(latLng.lat, latLng.lng);
+            });
+
+            map.on('click', function (e) {
+                marker.setLatLng(e.latlng);
+                updateLocationInputs(e.latlng.lat, e.latlng.lng);
+            });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const userLat = pos.coords.latitude;
+                    const userLng = pos.coords.longitude;
+                    map.setView([userLat, userLng], 14);
+                    marker.setLatLng([userLat, userLng]);
+                    updateLocationInputs(userLat, userLng);
+                }, () => {
+                    // Fallback to default
+                });
+            }
+        }
+
+        function updateLocationInputs(lat, lng) {
+            document.getElementById('sellingLat').value = typeof lat === 'number' ? lat.toFixed(6) : lat;
+            document.getElementById('sellingLng').value = typeof lng === 'number' ? lng.toFixed(6) : lng;
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const itemCategory = document.getElementById('itemCategory').value;
+            const title = document.getElementById('postTitle').value.trim();
+            const price = document.getElementById('sellingPrice').value.trim();
+            const condition = document.getElementById('itemCondition').value;
+            const lat = document.getElementById('sellingLat').value;
+            const lng = document.getElementById('sellingLng').value;
+            const content = document.getElementById('postContent').value.trim();
+            const imageUrl = document.getElementById('postImageUrl').value.trim();
+            const redirectUrl = document.getElementById('postRedirectUrl').value.trim();
+
+            if (!title || !content || !price || !lat || !lng) {
+                alert("Please fill in item title, price, location, and description.");
+                return;
+            }
+
+            try {
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Publishing Listing...";
+                }
+
+                const postsRef = ref(db, 'hulumNews');
+                const newPostRef = push(postsRef);
+
+                const newPostData = {
+                    title: title,
+                    body: content,
+                    category: "Selling",
+                    itemCategory: itemCategory,
+                    price: Number(price),
+                    condition: condition,
+                    location: {
+                        latitude: Number(lat),
+                        longitude: Number(lng)
+                    },
+                    imageUrl: imageUrl || "",
+                    link: redirectUrl || "",
+                    views: 0,
+                    likes: 0,
+                    userId: currentUser ? currentUser.uid : "anonymous",
+                    authorName: currentUser ? (currentUser.displayName || "User") : "Anonymous User",
+                    timestamp: Date.now()
+                };
+
+                await set(newPostRef, newPostData);
+
+                alert("Your selling item has been published with location data.");
+                document.getElementById('createSellingPostForm').reset();
+
+            } catch (error) {
+                console.error("Failed to publish selling post:", error);
+                alert("Could not submit selling listing. Please try again.");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Publish Selling Item";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
