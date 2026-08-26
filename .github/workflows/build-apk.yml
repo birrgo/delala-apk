@@ -1,4 +1,4 @@
-Name: Convert PWA to APK
+name: Convert PWA to APK
 
 on:
   push:
