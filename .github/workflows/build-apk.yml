@@ -1,4 +1,4 @@
-Name: Convert PWA to AAB
+name: Convert PWA to AAB
 
 on:
   push:
