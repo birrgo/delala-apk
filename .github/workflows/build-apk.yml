@@ -28,11 +28,29 @@ jobs:
           mkdir www
           rsync -a --exclude='.git' --exclude='.github' --exclude='www' ./ www/
 
-      - name: Install Android Packaging Tools
+      - name: Install Android Packaging Tools & Plugins
         run: |
           npm install @capacitor/core @capacitor/cli
           npx cap init "hulum Gebeya" "com.hulumgebeya.app" --web-dir www
-          npm install @capacitor/android
+          
+          # Added @capacitor/app here to handle the back button
+          npm install @capacitor/android @capacitor/status-bar @capacitor/app
+          
+          # Overwrite capacitor config to fix Status Bar overlap
+          cat << 'EOF' > capacitor.config.json
+          {
+            "appId": "com.hulumgebeya.app",
+            "appName": "hulum Gebeya",
+            "webDir": "www",
+            "plugins": {
+              "StatusBar": {
+                "overlaysWebView": false,
+                "backgroundColor": "#081B38"
+              }
+            }
+          }
+          EOF
+          
           npx cap add android
 
       - name: Generate App Icon from s.png
@@ -68,7 +86,6 @@ jobs:
                   <item name="windowNoTitle">true</item>
               </style>
 
-              <!-- ADDED MISSING LAUNCH THEME TO FIX BUILD ERROR -->
               <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
                   <item name="android:background">@drawable/splash</item>
               </style>
