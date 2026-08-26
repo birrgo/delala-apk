@@ -35,13 +35,13 @@ jobs:
       - name: Install Android Packaging Tools & Plugins
         run: |
           npm install @capacitor/core @capacitor/cli
-          npx cap init "hulum Gebeya" "com.hulumgebeya.app" --web-dir www
+          npx cap init "hulum Gebeya" "com.hulum.app" --web-dir www
           
           npm install @capacitor/android @capacitor/status-bar @capacitor/app
           
           cat << 'EOF' > capacitor.config.json
           {
-            "appId": "com.hulumgebeya.app",
+            "appId": "com.hulum.app",
             "appName": "hulum Gebeya",
             "webDir": "www",
             "plugins": {
