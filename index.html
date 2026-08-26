@@ -359,7 +359,6 @@
 
         // --- Offline Status Functions ---
         function showOfflinePopup() {
-            // Hide low connection popup if it's open, show offline popup
             lowConnectionPopup.classList.remove('show');
             offlinePopup.classList.add('show');
             console.log('[App] Network offline popup displayed.');
@@ -372,13 +371,12 @@
         function checkIfOnline() {
             if (navigator.onLine) {
                 hideOfflinePopup();
-                checkConnectionSpeed(); // Check if they came back online to a slow network
+                checkConnectionSpeed();
             } else {
                 alert("You are still offline. Please check your connection settings.");
             }
         }
 
-        // Event listeners for total network loss or recovery
         window.addEventListener('offline', showOfflinePopup);
         window.addEventListener('online', hideOfflinePopup);
 
@@ -389,38 +387,32 @@
         }
 
         function checkConnectionSpeed() {
-            // If they are completely offline, ignore speed checks
             if (!navigator.onLine) return;
 
             if ('connection' in navigator) {
                 const effectiveType = navigator.connection.effectiveType;
                 
-                // If speed is slow-2g or 2g, SHOW the popup
                 if (effectiveType === 'slow-2g' || effectiveType === '2g') {
                     console.log(`[App] Slow connection detected (${effectiveType}), showing popup.`);
                     lowConnectionPopup.classList.add('show');
                 } else {
-                    // If connection improves, auto-hide the popup
                     hideLowConnectionPopup();
                 }
             }
         }
 
-        // Listen for dynamic changes in network quality
         if ('connection' in navigator) {
             navigator.connection.addEventListener('change', checkConnectionSpeed);
         }
 
         // --- Initialization on Load ---
         window.addEventListener('load', () => {
-            // Check initial network status
             if (!navigator.onLine) {
                 showOfflinePopup();
             } else {
                 checkConnectionSpeed();
             }
 
-            // Register Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('Service Worker registered:', reg.scope))
@@ -432,7 +424,6 @@
         let deferredPrompt;
         const installBtn = document.getElementById('pwaInstallBtn');
 
-        // Capture standard install prompt when available
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -458,6 +449,22 @@
             deferredPrompt = null;
             console.log('Delala app installed successfully.');
         });
+
+        // ==========================================
+        // CAPACITOR NATIVE BACK BUTTON HANDLING
+        // ==========================================
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            const App = window.Capacitor.Plugins.App;
+            App.addListener('backButton', ({ canGoBack }) => {
+                if (canGoBack) {
+                    // Navigate back to the previous page in the web app
+                    window.history.back();
+                } else {
+                    // If there is no previous page, close the native app
+                    App.exitApp();
+                }
+            });
+        }
     </script>
 
 </body>
