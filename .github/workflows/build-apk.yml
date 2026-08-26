@@ -43,6 +43,27 @@ jobs:
           npx capacitor-assets generate --android
           npx cap sync android
 
+      - name: Apply Custom Android Styles
+        run: |
+          mkdir -p android/app/src/main/res/values
+          cat << 'EOF' > android/app/src/main/res/values/styles.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+                  <item name="colorPrimary">#0F2C59</item>
+                  <item name="colorPrimaryDark">#081B38</item>
+                  <item name="colorAccent">#0F2C59</item>
+                  <item name="android:windowTranslucentStatus">false</item>
+                  <item name="android:statusBarColor">#081B38</item>
+              </style>
+
+              <style name="AppTheme.NoActionBar" parent="AppTheme">
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+              </style>
+          </resources>
+          EOF
+
       - name: Build the APK
         run: |
           cd android
