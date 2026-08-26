@@ -1,4 +1,4 @@
-name: Convert PWA to AAB
+Name: Convert PWA to AAB
 
 on:
   push:
@@ -30,8 +30,6 @@ jobs:
 
       - name: Inject CSS Fix for Header Overlap
         run: |
-          # Automatically injects a forced 36px padding override into your HTML files 
-          # so you don't have to change your original CSS files.
           find www -type f -name "*.html" -exec sed -i 's|</head>|<style>.nav-header { padding-top: 36px !important; padding-bottom: 8px !important; }</style></head>|g' {} +
 
       - name: Install Android Packaging Tools & Plugins
@@ -39,10 +37,8 @@ jobs:
           npm install @capacitor/core @capacitor/cli
           npx cap init "hulum Gebeya" "com.hulumgebeya.app" --web-dir www
           
-          # Added @capacitor/app here to handle the back button
           npm install @capacitor/android @capacitor/status-bar @capacitor/app
           
-          # Overwrite capacitor config to fix Status Bar overlap
           cat << 'EOF' > capacitor.config.json
           {
             "appId": "com.hulumgebeya.app",
@@ -70,7 +66,6 @@ jobs:
       - name: Add Location Permissions to Android Manifest
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          # Insert GPS location permissions right before the <application> tag
           sed -i '/<application/i \    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" android:required="false" />' $MANIFEST
 
       - name: Apply Custom Android Styles
@@ -99,14 +94,27 @@ jobs:
           </resources>
           EOF
 
-      - name: Build the AAB (App Bundle)
+      - name: Build Unsigned AAB
         run: |
           cd android
           chmod +x gradlew
           ./gradlew bundleRelease
 
-      - name: Upload AAB for Download
+      - name: Decode Keystore Secret
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-key.jks
+
+      - name: Sign AAB File
+        run: |
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore android/app/release-key.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            android/app/build/outputs/bundle/release/app-release.aab \
+            ${{ secrets.KEY_ALIAS }}
+
+      - name: Upload Signed AAB for Download
         uses: actions/upload-artifact@v4
         with:
-          name: hulum-gebeya-aab
-          path: android/app/build/outputs/bundle/release/*.aab
+          name: hulum-gebeya-signed-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
