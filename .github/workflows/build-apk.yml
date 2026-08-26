@@ -1,4 +1,4 @@
-ntername: Convert PWA to APK
+name: Convert PWA to APK
 
 on:
   push:
@@ -30,7 +30,8 @@ jobs:
 
       - name: Inject CSS Fix for Header Overlap
         run: |
-          # Changed padding-top from 45px to 36px to slightly reduce the header height
+          # Automatically injects a forced 36px padding override into your HTML files 
+          # so you don't have to change your original CSS files.
           find www -type f -name "*.html" -exec sed -i 's|</head>|<style>.nav-header { padding-top: 36px !important; padding-bottom: 8px !important; }</style></head>|g' {} +
 
       - name: Install Android Packaging Tools & Plugins
