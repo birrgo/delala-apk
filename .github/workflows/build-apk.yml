@@ -43,6 +43,12 @@ jobs:
           npx capacitor-assets generate --android
           npx cap sync android
 
+      - name: Add Location Permissions to Android Manifest
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          # Insert GPS location permissions right before the <application> tag
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" android:required="false" />' $MANIFEST
+
       - name: Apply Custom Android Styles
         run: |
           mkdir -p android/app/src/main/res/values
