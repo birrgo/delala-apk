@@ -55,6 +55,14 @@ jobs:
           
           npx cap add android
 
+      - name: Update App Version to 1.0.3
+        run: |
+          BUILD_GRADLE="android/app/build.gradle"
+          # Update the internal version code (must be higher than 1)
+          sed -i 's/versionCode 1/versionCode 3/g' $BUILD_GRADLE
+          # Update the user-facing version name
+          sed -i 's/versionName "1.0"/versionName "1.0.3"/g' $BUILD_GRADLE
+
       - name: Generate App Icon from s.png
         run: |
           mkdir -p assets
