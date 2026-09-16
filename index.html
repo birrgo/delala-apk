@@ -1,106 +1,351 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- Primary Page Metadata -->
     <title>Delala | Rentals, Selling, Job Vacancies & Tech Tips</title>
     <meta name="title" content="Delala | Rentals, Selling, Job Vacancies & Tech Tips">
     <meta name="description" content="Delala is your primary platform for rental listings, selling items, online vacancies, tech tips, and job opportunities in Ethiopia.">
     <meta name="keywords" content="delala, rental ethiopia, selling ethiopia, job vacancy, online work in ethiopia, tech tips, ethiopian jobs, profile">
     <meta name="author" content="Delala">
     <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="https://delala.online/">
 
-    <!-- App Configuration -->
-    <meta name="theme-color" content="#F8FAFC">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Delala">
+    <link rel="apple-touch-icon" href="s.png">
     <link rel="icon" type="image/png" sizes="192x192" href="s.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="s.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="news.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        /* Base Light / White UI Theme */
-        body {
-            background-color: #F8FAFC;
-            color: #0F172A;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 0;
-            padding: 0;
+        :root {
+            --text-main: #ffffff;
+            --text-muted: #e2e8f0;
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        .app-view {
-            background-color: #F8FAFC;
-            min-height: 100vh;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
             display: flex;
-            align-items: center;
             justify-content: center;
-            position: relative;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #020617; 
             overflow: hidden;
         }
 
-        /* Container for Action Button */
-        .action-container {
+        .app-view {
+            height: 100vh;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            background-image: url('bgu.png');
+            background-size: cover;
+            background-position: center bottom;
             position: relative;
-            z-index: 10;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            width: 100%;
+            color: var(--text-main);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
 
-        /* Top Light Wave Gradient Background Accent */
-        .bg-wave-top {
+        @media (max-aspect-ratio: 9/16) {
+            .app-view {
+                width: 100vw;
+                height: 100vh;
+                aspect-ratio: auto;
+            }
+        }
+
+        @keyframes fadeInDown {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 12px 4px rgba(0, 255, 255, 0.4); }
+            50% { box-shadow: 0 0 20px 6px rgba(0, 255, 255, 0.7); }
+        }
+
+        /* --- Header Section (No Blur) --- */
+        .header {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 200px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: clamp(35px, 6vh, 45px) 20px 20px 20px;
+            text-align: center;
+            animation: fadeInDown 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        .header h2 {
+            font-size: clamp(20px, 3.5vh, 26px);
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            text-shadow: 0 2px 10px rgba(0,0,0,1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h3 {
+            font-size: clamp(15px, 2.2vh, 18px);
+            font-weight: 500;
+            color: #bae6fd;
+            text-shadow: 0 2px 10px rgba(0,0,0,1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .map-layer {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 5;
+        }
+
+        .pin-wrapper {
+            position: absolute;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .pin-center { top: 24%; left: 50%; animation-delay: 0s; }
+        .pin-rent { top: 38%; left: 16%; animation-delay: 0.5s; }
+        .pin-sell { top: 38%; left: 84%; animation-delay: 1.5s; }
+        .pin-buy { top: 61%; left: 32%; animation-delay: 1s; }
+        .pin-hire { top: 61%; left: 68%; animation-delay: 2s; }
+
+        .pin {
+            position: absolute;
+            bottom: 0;
+            left: -28px; 
+            width: 56px; 
+            height: 56px; 
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--glass-shadow), inset 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        .pin-center .pin {
+            left: -32px;
+            width: 64px;
+            height: 64px;
+        }
+
+        .pin::after {
+            content: '';
+            position: absolute;
+            bottom: -15px; 
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 10px 0; 
+            border-style: solid;
+            border-color: rgba(200, 220, 255, 0.5) transparent transparent transparent;
+            z-index: -1;
+        }
+
+        .pin::before {
+            content: '';
+            position: absolute;
+            bottom: -13px; 
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 13px 8px 0; 
+            border-style: solid;
+            border-color: rgba(15, 25, 40, 0.9) transparent transparent transparent;
+            z-index: -1;
+        }
+
+        .pin i {
+            font-size: 20px; 
+            color: var(--text-main);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        }
+
+        .pin img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        .glow-dot {
+            position: absolute;
+            bottom: -20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 5px;
+            background: #00ffff;
+            border-radius: 50%;
+            z-index: -2;
+            animation: pulseGlow 3s infinite;
+        }
+
+        .pin-label {
+            position: absolute;
+            top: 15px; 
+            left: 0; 
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            white-space: nowrap;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .pin-label .en {
+            font-size: clamp(12px, 2vh, 14px);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .pin-label .am {
+            font-size: clamp(10px, 1.5vh, 12px);
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* --- Footer Section (Fixed Blur Issue) --- */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 10;
+            padding: 40px 20px 70px 20px;
+            text-align: center;
+            animation: slideUp 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation-delay: 0.2s;
+            opacity: 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* The blur and mask are now on a pseudo-element behind the content */
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.6) 75%, transparent 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            -webkit-mask-image: linear-gradient(to top, black 70%, transparent 100%);
+            mask-image: linear-gradient(to top, black 70%, transparent 100%);
+            z-index: -1; 
+        }
+
+        /* --- 3D Bold Dark Blue Button --- */
+        .btn-start {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 85%;
+            max-width: 320px;
+            padding: 18px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: var(--text-main);
+            /* Rich 3D Dark Blue Gradient */
+            background: linear-gradient(180deg, #1e40af 0%, #172554 100%); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* 3D Shadows: Outer drop shadow + Inner top highlight + Inner bottom shadow */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), 
+                        inset 0 3px 6px rgba(255, 255, 255, 0.3),
+                        inset 0 -4px 8px rgba(0, 0, 0, 0.6);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            margin-bottom: 20px; 
+        }
+
+        /* Glossy reflection on top of the button */
+        .btn-start::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 45%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 50px 50px 0 0;
             pointer-events: none;
         }
 
-        /* Base Button Styles */
-        .btn-get-started {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            width: 85%;
-            max-width: 280px;
-            padding: 18px 32px;
-            font-size: 18px;
-            font-weight: 700;
-            text-decoration: none;
-            border-radius: 14px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-align: center;
-            box-sizing: border-box;
-            cursor: pointer;
-            border: none;
-            font-family: inherit;
-            background: linear-gradient(135deg, #0F172A, #1E293B);
-            color: #FFFFFF;
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+        .btn-start:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(180deg, #2563eb 0%, #1e3a8a 100%); 
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 
+                        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+                        inset 0 -4px 8px rgba(0, 0, 0, 0.7);
         }
 
-        .btn-get-started:active {
-            transform: scale(0.96);
+        /* Compression effect on click */
+        .btn-start:active {
+            transform: translateY(3px) scale(0.97);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6),
+                        inset 0 2px 6px rgba(0, 0, 0, 0.8);
         }
 
-        .btn-get-started svg {
-            width: 22px;
-            height: 22px;
-            stroke: #FFFFFF;
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        .btn-start span {
+            font-size: clamp(16px, 2.5vh, 19px);
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2; 
+        }
+
+        .footer p {
+            font-size: clamp(12px, 1.8vh, 15px);
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0,0,0,1);
+            position: relative;
+            z-index: 2;
         }
 
         /* =========================================================
@@ -108,39 +353,32 @@
            ========================================================= */
         .connection-popup-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(2, 6, 23, 0.7);
+            backdrop-filter: blur(6px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            
-            /* Hidden by default */
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
         .connection-popup-overlay.show {
-            opacity: 1;
-            visibility: visible;
+            opacity: 1; visibility: visible;
         }
 
         .status-card {
-            background: #FFFFFF;
+            background: #ffffff;
+            color: #0f172a;
             width: 85%;
             max-width: 340px;
             border-radius: 24px;
             padding: 40px 24px;
             text-align: center;
-            box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.2);
-            border: 1px solid #E2E8F0;
-            
-            /* Slide down when hidden, slide up when shown */
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
             transform: translateY(20px);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -149,10 +387,8 @@
             transform: translateY(0);
         }
 
-        /* Icon Variants */
         .icon-container {
-            width: 72px;
-            height: 72px;
+            width: 72px; height: 72px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -161,86 +397,55 @@
         }
         
         .icon-container.offline-icon {
-            background: #FEF2F2;
-            color: #DC2626;
+            background: #FEF2F2; color: #DC2626;
             animation: floatIcon 3s ease-in-out infinite;
         }
         
         .icon-container.low-icon {
-            background: #FFF7ED;
-            color: #EA580C;
+            background: #FFF7ED; color: #EA580C;
             animation: pulseWarning 2s infinite ease-in-out;
         }
 
         .icon-container svg {
-            width: 32px;
-            height: 32px;
-            stroke-width: 2.5;
-            stroke: currentColor;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            width: 32px; height: 32px;
+            stroke-width: 2.5; stroke: currentColor;
+            fill: none; stroke-linecap: round; stroke-linejoin: round;
         }
 
         .status-title {
-            font-size: 20px;
-            font-weight: 800;
-            margin: 0 0 10px 0;
-            letter-spacing: -0.5px;
+            font-size: 20px; font-weight: 800;
+            margin: 0 0 10px 0; letter-spacing: -0.5px;
         }
 
         .status-description {
-            font-size: 14.5px;
-            color: #64748B;
-            margin: 0 0 28px 0;
-            line-height: 1.5;
+            font-size: 14.5px; color: #64748B;
+            margin: 0 0 28px 0; line-height: 1.5;
         }
 
-        /* Popup Buttons */
         .primary-popup-btn {
-            background: #0F2C59;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 14px;
-            padding: 15px 24px;
-            width: 100%;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background: #0F2C59; color: #FFFFFF;
+            border: none; border-radius: 14px;
+            padding: 15px 24px; width: 100%;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease;
             box-shadow: 0 4px 12px rgba(15, 44, 89, 0.2);
             margin-bottom: 12px;
         }
-
         .primary-popup-btn:active {
-            transform: scale(0.97);
-            background: #081B38;
+            transform: scale(0.97); background: #081B38;
         }
 
         .secondary-popup-btn {
-            background: transparent;
-            color: #64748B;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            padding: 10px;
-            transition: color 0.2s ease;
-            width: 100%;
+            background: transparent; color: #64748B;
+            border: none; font-size: 14px; font-weight: 600;
+            cursor: pointer; padding: 10px; width: 100%;
         }
-
-        .secondary-popup-btn:active {
-            color: #0F172A;
-        }
-
-        /* Animations */
+        
         @keyframes pulseWarning {
             0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.2); }
             70% { box-shadow: 0 0 0 15px rgba(234, 88, 12, 0); }
             100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
         }
-        
         @keyframes floatIcon {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-6px); }
@@ -250,35 +455,77 @@
 </head>
 <body>
 
-    <!-- Main App UI -->
-    <div class="app-view">
-        <!-- Top Light Wave Gradient -->
-        <svg class="bg-wave bg-wave-top" viewBox="0 0 375 200" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 0H375V75C375 75 280 155 0 95V0Z" fill="url(#paint0_linear)"/>
-            <defs>
-                <linearGradient id="paint0_linear" x1="187.5" y1="0" x2="187.5" y2="200" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#E2E8F0"/>
-                    <stop offset="1" stop-color="#F1F5F9"/>
-                </linearGradient>
-            </defs>
-        </svg>
+    <main class="app-view">
+        
+        <header class="header">
+            <h2>የቅርብዎን፣ በቅርብ ያግኙ!</h2>
+            <h3>Find what's near you, right away!</h3>
+        </header>
 
-        <!-- Main Action Button Container -->
-        <div class="action-container">
-            <a href="rental.html" class="btn-get-started">
+        <section class="map-layer">
+            
+            <div class="pin-wrapper pin-center">
+                <div class="pin">
+                    <img src="s.png" alt="S Logo Pin">
+                    <div class="glow-dot"></div>
+                </div>
+            </div>
+
+            <div class="pin-wrapper pin-rent">
+                <div class="pin">
+                    <i class="fa-solid fa-building"></i>
+                    <div class="glow-dot"></div>
+                </div>
+                <div class="pin-label">
+                    <span class="en">Rent</span>
+                    <span class="am">ያከራዩ</span>
+                </div>
+            </div>
+
+            <div class="pin-wrapper pin-sell">
+                <div class="pin">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <div class="glow-dot"></div>
+                </div>
+                <div class="pin-label">
+                    <span class="en">Sell</span>
+                    <span class="am">ይሽጡ</span>
+                </div>
+            </div>
+
+            <div class="pin-wrapper pin-buy">
+                <div class="pin">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <div class="glow-dot"></div>
+                </div>
+                <div class="pin-label">
+                    <span class="en">Buy</span>
+                    <span class="am">ይግዙ</span>
+                </div>
+            </div>
+
+            <div class="pin-wrapper pin-hire">
+                <div class="pin">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    <div class="glow-dot"></div>
+                </div>
+                <div class="pin-label">
+                    <span class="en">Hire Services</span>
+                    <span class="am">አገልግሎቶችን ያግኙ</span>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="footer">
+            <a href="rental.html" class="btn-start" aria-label="Get Started">
                 <span>Get Started</span>
-                <svg viewBox="0 0 24 24">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
             </a>
-        </div>
-    </div>
+            <p>Rent, Sell, Buy & Hire. Discover everything near you.<br>ያከራዩ፣ ይሽጡ፣ ይግዙ፣ አገልግሎቶችን ያግኙ። ሁሉንም ነገር በአቅራቢያዎ ያግኙ።</p>
+        </footer>
 
+    </main>
 
-    <!-- ==========================================
-         OFFLINE POPUP OVERLAY
-         ========================================== -->
     <div id="offlinePopup" class="connection-popup-overlay">
         <div class="status-card">
             <div class="icon-container offline-icon">
@@ -299,9 +546,6 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         SLOW CONNECTION POPUP OVERLAY
-         ========================================== -->
     <div id="lowConnectionPopup" class="connection-popup-overlay">
         <div class="status-card">
             <div class="icon-container low-icon">
@@ -320,20 +564,13 @@
         </div>
     </div>
 
-
-    <!-- ==========================================
-         SCRIPTS: Connection Tracking & App Controls
-         ========================================== -->
     <script>
-        // DOM Elements
         const offlinePopup = document.getElementById('offlinePopup');
         const lowConnectionPopup = document.getElementById('lowConnectionPopup');
 
-        // --- Offline Status Functions ---
         function showOfflinePopup() {
             lowConnectionPopup.classList.remove('show');
             offlinePopup.classList.add('show');
-            console.log('[App] Network offline popup displayed.');
         }
 
         function hideOfflinePopup() {
@@ -343,7 +580,7 @@
         function checkIfOnline() {
             if (navigator.onLine) {
                 hideOfflinePopup();
-                checkConnectionSpeed();
+                checkConnectionSpeed(); 
             } else {
                 alert("You are still offline. Please check your connection settings.");
             }
@@ -352,20 +589,15 @@
         window.addEventListener('offline', showOfflinePopup);
         window.addEventListener('online', hideOfflinePopup);
 
-
-        // --- Slow Connection Functions ---
         function hideLowConnectionPopup() {
             lowConnectionPopup.classList.remove('show');
         }
 
         function checkConnectionSpeed() {
             if (!navigator.onLine) return;
-
             if ('connection' in navigator) {
                 const effectiveType = navigator.connection.effectiveType;
-                
                 if (effectiveType === 'slow-2g' || effectiveType === '2g') {
-                    console.log(`[App] Slow connection detected (${effectiveType}), showing popup.`);
                     lowConnectionPopup.classList.add('show');
                 } else {
                     hideLowConnectionPopup();
@@ -377,28 +609,19 @@
             navigator.connection.addEventListener('change', checkConnectionSpeed);
         }
 
-        // --- Initialization on Load ---
         window.addEventListener('load', () => {
             if (!navigator.onLine) {
                 showOfflinePopup();
             } else {
                 checkConnectionSpeed();
             }
-        });
 
-        // ==========================================
-        // CAPACITOR NATIVE BACK BUTTON HANDLING
-        // ==========================================
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-            const App = window.Capacitor.Plugins.App;
-            App.addListener('backButton', ({ canGoBack }) => {
-                if (canGoBack) {
-                    window.history.back();
-                } else {
-                    App.exitApp();
-                }
-            });
-        }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg.scope))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            }
+        });
     </script>
 
 </body>

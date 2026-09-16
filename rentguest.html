@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Delala - Post Machinery Rental</title>
+    <title>Delala - Post Guest House Rental</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -189,13 +189,6 @@
             -webkit-appearance: none;
         }
 
-        .dark-3d-card .form-textarea {
-            height: auto;
-            min-height: 90px;
-            padding: 12px 14px;
-            resize: vertical;
-        }
-
         .dark-3d-card .form-select {
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2094A3B8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
             background-repeat: no-repeat !important;
@@ -204,17 +197,94 @@
             padding-right: 36px;
         }
 
-        .dark-3d-card .form-input::placeholder,
-        .dark-3d-card .form-textarea::placeholder {
+        .dark-3d-card .form-input::placeholder {
             color: #475569 !important;
         }
 
         .dark-3d-card .form-input:focus,
-        .dark-3d-card .form-select:focus,
-        .dark-3d-card .form-textarea:focus {
+        .dark-3d-card .form-select:focus {
             border-color: #38BDF8 !important;
             background-color: #07080a !important;
             box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+        }
+
+        /* --- Amenities Grid inside Dark Cards --- */
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .amenity-checkbox-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .amenity-checkbox-wrapper input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .amenity-card {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0d0f13;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: #0F172A;
+        }
+
+        .checkbox-custom svg {
+            width: 10px;
+            height: 10px;
+            stroke: #FFFFFF;
+            stroke-width: 3;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s ease;
+        }
+
+        .amenity-checkbox-wrapper input:checked ~ .amenity-card {
+            border-color: #38BDF8;
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .amenity-checkbox-wrapper input:checked ~ .amenity-card .checkbox-custom {
+            background: #38BDF8;
+            border-color: #38BDF8;
+        }
+
+        .amenity-checkbox-wrapper input:checked ~ .amenity-card .checkbox-custom svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .amenity-label-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #CBD5E1;
+            line-height: 1.2;
         }
 
         /* --- White 3D Container Cards (for Title & Description) --- */
@@ -541,7 +611,7 @@
     <div class="app-view">
         <header class="nav-header">
             <div class="header-left-group">
-                <h1 class="header-title-text">Delala - Post Machinery</h1>
+                <h1 class="header-title-text">Delala - Guest House Details</h1>
             </div>
             <div class="header-live-clock-badge" id="topCornerLiveClock">00:00:00 AM</div>
         </header>
@@ -556,68 +626,116 @@
                 </div>
 
                 <div class="form-step-page" id="stepPage2">
-                    <div class="step-title">Step 2: Machinery & Equipment Details</div>
+                    <div class="step-title">Step 2: Guest House & Room Details</div>
 
                     <div class="dark-3d-card">
                         <div class="form-group" style="margin-bottom: 14px;">
-                            <label class="form-label" for="machineryCategorySelect">Machinery Category / የካቴጎሪ ዓይነት *</label>
-                            <select class="form-select custom-styled-select" id="machineryCategorySelect" required></select>
+                            <label class="form-label" for="guestHouseName">Guest House Name / የእንግዳ ማረፊያ ስም *</label>
+                            <input type="text" class="form-input" id="guestHouseName" placeholder="e.g., Skyline Guest House" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="form-label" for="roomTypes">Room Types / የክፍል ዓይነቶች *</label>
+                            <select class="form-select custom-styled-select" id="roomTypes" required>
+                                <option value="" disabled selected>Select Room Types...</option>
+                                <option value="Single, Double">Single & Double</option>
+                                <option value="Single, Double, Twin">Single, Double, Twin</option>
+                                <option value="All Types (Includes Suites)">All Types (Includes Suites)</option>
+                                <option value="Dormitory Style">Dormitory Style</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="machinerySubCategorySelect">Sub-Category / ንዑስ ካቴጎሪ *</label>
-                            <select class="form-select custom-styled-select" id="machinerySubCategorySelect" required></select>
+                            <label class="form-label" for="totalRooms">Total Rooms / ጠቅላላ የክፍል ብዛት *</label>
+                            <input type="number" class="form-input" id="totalRooms" placeholder="e.g., 25" min="1" required>
                         </div>
                     </div>
 
                     <div class="dark-3d-card">
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label" for="rentalPrice">Price (ETB) *</label>
-                                <input type="number" class="form-input" id="rentalPrice" placeholder="e.g. 5000" required>
+                                <label class="form-label" for="minPrice">Min Price / ሌሊት (ETB) *</label>
+                                <input type="number" class="form-input" id="minPrice" placeholder="e.g. 1000" min="0" required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="paymentPeriod">Time Period *</label>
-                                <select class="form-select custom-styled-select" id="paymentPeriod" required>
-                                    <option value="Per Hour (በሰዓት)">Per Hour (በሰዓት)</option>
-                                    <option value="Per Day (በቀን)">Per Day (በቀን)</option>
-                                    <option value="Per Month (በወር)">Per Month (በወር)</option>
-                                    <option value="3 Months">3 Months</option>
-                                    <option value="6 Months">6 Months</option>
-                                    <option value="1 Year">1 Year</option>
-                                </select>
+                                <label class="form-label" for="maxPrice">Max Price / ሌሊት (ETB) *</label>
+                                <input type="number" class="form-input" id="maxPrice" placeholder="e.g. 5000" min="0" required>
                             </div>
                         </div>
                     </div>
 
                     <div class="dark-3d-card">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label" for="machineryModel">Model /  ሞዴል *</label>
-                                <input type="text" class="form-input" id="machineryModel" placeholder="e.g. CAT 320 / FG Wilson" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="powerSource">Power Source *</label>
-                                <select class="form-select custom-styled-select" id="powerSource" required>
-                                    <option value="Diesel / Petrol">Diesel / Petrol</option>
-                                    <option value="Electric">Electric</option>
-                                    <option value="Hydraulic / Manual">Hydraulic / Manual</option>
-                                    <option value="Pneumatic">Pneumatic</option>
-                                </select>
-                            </div>
+                        <label class="form-label" style="margin-bottom: 12px;">Amenities & Services / የሚሰጡ አገልግሎቶች</label>
+                        <div class="amenities-grid">
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Free Wi-Fi">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Free Wi-Fi / ነፃ ዋይፋይ</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Parking">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Parking / ፓርኪንግ</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Breakfast">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Breakfast / ቁርስ</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Restaurant">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Restaurant / ምግብ ቤት</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Bar">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Bar / ባር</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Pool">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Pool / ዋና ቦታ</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Spa & Gym">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Spa & Gym / ስፓ እና ጂም</span>
+                                </div>
+                            </label>
+                            <label class="amenity-checkbox-wrapper">
+                                <input type="checkbox" name="amenity" value="Hall">
+                                <div class="amenity-card">
+                                    <div class="checkbox-custom"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                    <span class="amenity-label-text">Hall / የስብሰባ አዳራሽ</span>
+                                </div>
+                            </label>
                         </div>
                     </div>
 
                     <div class="white-3d-card">
                         <div class="form-group">
                             <label class="form-label" for="postTitle">Title / Headline *</label>
-                            <input type="text" class="form-input" id="postTitle" placeholder="e.g. Heavy Duty Caterpillar Excavator for Rent" required>
+                            <input type="text" class="form-input" id="postTitle" placeholder="e.g. Luxury Guest House in Bole" required>
                         </div>
                     </div>
 
                     <div class="white-3d-card">
                         <div class="form-group">
                             <label class="form-label" for="postContent">Description & Details (Optional)</label>
-                            <textarea class="form-textarea" id="postContent" placeholder="Describe condition, capacity, location, or operator inclusion..."></textarea>
+                            <textarea class="form-textarea" id="postContent" placeholder="Describe the guest house, atmosphere, security, or proximity to attractions..."></textarea>
                         </div>
                     </div>
 
@@ -650,9 +768,9 @@
                 </div>
                 <span class="post-fab-label">Post</span>
             </a>
-            <a href="vacancy.html" class="nav-item">
-                <div class="icon-bg"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
-                <span>Vacancy</span>
+            <a href="service.html" class="nav-item">
+                <div class="icon-bg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div>
+                <span>Service</span>
             </a>
             <a href="profile.html" class="nav-item">
                 <div class="icon-bg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
@@ -687,94 +805,8 @@
     </div>
 
     <script>
-        const PAGE_CATEGORY = "Machinery";
-
-        // Complete Machinery Categories with Detailed Specific Basic Machines under Subcategories
-        const machineryCategories = [
-            {
-                id: "cat_1",
-                title: "1. Earthmoving & Heavy Construction Machinery / የኮንስትራክሽን እና የመሬት ቁፋሮ ማሽኖች",
-                subcategories: [
-                    "Excavator (ኤክስካቫተር)",
-                    "Bulldozer (ቡልዶዘር)",
-                    "Wheel Loader (ዊል ላደር)",
-                    "Motor Grader (ሞተር ግሬደር)",
-                    "Backhoe Loader (ባክሆ ላደር)",
-                    "Concrete Mixer (ኮንክሪት ማቀላቀያ)",
-                    "Concrete Pump (ኮንክሪት ፓምፕ)",
-                    "Concrete Vibrator (ኮንክሪት ቫይብሬተር)",
-                    "Road Roller / Compactor (ሮድ ሮለር / ኮምፓክተር)",
-                    "Asphalt Paver (አስፋልት ፓቨር)"
-                ]
-            },
-            {
-                id: "cat_2",
-                title: "2. Lifting, Haulage & Material Handling / የዕቃ ማንሻ፣ የትራንስፖርት እና የከባድ ጭነት ማሽኖች",
-                subcategories: [
-                    "Forklift (ፎርክሊፍት)",
-                    "Telehandler (ቴሌሃንድለር)",
-                    "Mobile Crane (ሞባይል ክሬን)",
-                    "Tower Crane (ታወር ክሬን)",
-                    "Dump Truck (ዳምፕ ትራክ)",
-                    "Flatbed Transport Truck (ፍላትቤድ መኪና)"
-                ]
-            },
-            {
-                id: "cat_3",
-                title: "3. Light & Power Utility Equipment / የብርሃን እና የውኃ ኃይል መሣሪያዎች",
-                subcategories: [
-                    "Diesel Generator (ጀነሬተር - ዲስል)",
-                    "Gasoline Generator (ጀነሬተር - ቤንዚን)",
-                    "Water Pump (የውኃ ፓምፕ)",
-                    "Light Tower (ላይት ታወር)",
-                    "Air Compressor (ኤር ኮምፕሬሰር)"
-                ]
-            },
-            {
-                id: "cat_4",
-                title: "4. Mechanical & Metalworking Machinery / የሜካኒካል እና የብረታ ብረት ማሽኖች",
-                subcategories: [
-                    "Lathe Machine (ለርዝ ማሽን)",
-                    "Arc / TIG / MIG Welding Machine (ዌልዲንግ ማሽን)",
-                    "Plasma Cutter (ፕላዝማ ከተር)",
-                    "Metal Shearing Machine (ብረት መቁረጫ)",
-                    "Metal Bending Machine (ብረት ማጠፊያ)"
-                ]
-            },
-            {
-                id: "cat_5",
-                title: "5. Furniture & Woodworking Machinery / የቤት ዕቃዎች እና የእንጨት ሥራ ማሽኖች",
-                subcategories: [
-                    "Panel Saw / Sliding Table Saw (ፓነል ሶው)",
-                    "Edge Bander (ኤጅ ባንደር)",
-                    "Wood Planer / Jointer (ውድ ፕላነር)",
-                    "Wood Router & Drill Press (እንጨት ድሪል እና ሮተር)",
-                    "Pneumatic Nail Gun (ኔል ጋን)"
-                ]
-            },
-            {
-                id: "cat_6",
-                title: "6. Garment & Textile Machinery / የጨርቃጨርቅ እና አልባሳት ማሽኖች",
-                subcategories: [
-                    "Industrial Sewing Machine (የልብስ ስፌት ማሽን - ነጠላ)",
-                    "Overlock Machine (ኦቨርሎክ ማሽን)",
-                    "Interlock Machine (ኢንተርሎክ ማሽን)",
-                    "Fabric Cutting Machine (ጨርቅ መቁረጫ)",
-                    "Steam Iron & Press (እስቲም እስታይለር / ብረት)"
-                ]
-            },
-            {
-                id: "cat_7",
-                title: "7. Agricultural & Farming Machinery / የግብርና እና የእርሻ ማሽኖች",
-                subcategories: [
-                    "Farm Tractor (ትራክተር)",
-                    "Combine Harvester (ኮምባይን ሃርቨስተር)",
-                    "Thresher Machine (እህል አውድማ ማሽን)",
-                    "Water Pump for Irrigation (የመስኖ ውኃ ፓምፕ)",
-                    "Disc Plough & Harrow (እርሻ ማረሻ መሣሪያ)"
-                ]
-            }
-        ];
+        const PAGE_CATEGORY = "Guest House";
+        const SESSION_KEY_2 = 'delalaDraftPart2';
 
         window.showErrorModal = function(message, title = "Validation Error") {
             document.getElementById('errorModalTitle').innerText = title;
@@ -797,6 +829,7 @@
             optionsList.innerHTML = '';
 
             Array.from(selectElem.options).forEach(opt => {
+                if (opt.disabled) return;
                 const item = document.createElement('div');
                 item.className = `custom-select-option-item ${opt.selected ? 'selected' : ''}`;
                 item.innerHTML = `
@@ -851,36 +884,10 @@
             return { phone: userPhone, id: userId || userPhone };
         }
 
-        function populateCategorySelectors() {
-            const catSelect = document.getElementById('machineryCategorySelect');
-            const subCatSelect = document.getElementById('machinerySubCategorySelect');
-            if (!catSelect || !subCatSelect) return;
-
-            catSelect.innerHTML = machineryCategories.map(cat => 
-                `<option value="${cat.id}">${cat.title}</option>`
-            ).join('');
-
-            function updateSubCategories(selectedCatId) {
-                const found = machineryCategories.find(c => c.id === selectedCatId) || machineryCategories[0];
-                subCatSelect.innerHTML = found.subcategories.map(sub => 
-                    `<option value="${sub}">${sub}</option>`
-                ).join('');
-            }
-
-            catSelect.addEventListener('change', (e) => {
-                updateSubCategories(e.target.value);
-                bindCustomSelectHandlers();
-            });
-
-            updateSubCategories(machineryCategories[0].id);
-            bindCustomSelectHandlers();
-        }
-
         function refreshFormState() {
             const currentUser = getAuthenticatedUser();
             if (!currentUser) return;
 
-            populateCategorySelectors();
             restoreSavedDraft();
             bindCustomSelectHandlers();
         }
@@ -892,11 +899,35 @@
             document.getElementById('btnNext2').addEventListener('click', () => {
                 if (!getAuthenticatedUser()) return;
 
+                const guestHouseName = document.getElementById('guestHouseName').value.trim();
+                const totalRooms = document.getElementById('totalRooms').value.trim();
+                const roomTypes = document.getElementById('roomTypes').value;
+                const minPrice = document.getElementById('minPrice').value.trim();
+                const maxPrice = document.getElementById('maxPrice').value.trim();
                 const title = document.getElementById('postTitle').value.trim();
-                const price = document.getElementById('rentalPrice').value;
 
-                if (!title || !price) {
-                    showErrorModal("Please fill in both the listing title and rental price.");
+                if (!guestHouseName) {
+                    showErrorModal("Please enter the Guest House Name.");
+                    return;
+                }
+                if (!roomTypes) {
+                    showErrorModal("Please select the available room types.");
+                    return;
+                }
+                if (!totalRooms) {
+                    showErrorModal("Please enter the total number of rooms.");
+                    return;
+                }
+                if (!minPrice || !maxPrice) {
+                    showErrorModal("Please provide both Min and Max price per night.");
+                    return;
+                }
+                if (parseFloat(minPrice) > parseFloat(maxPrice)) {
+                    showErrorModal("Min price cannot be greater than Max price.");
+                    return;
+                }
+                if (!title) {
+                    showErrorModal("Please provide a Title/Headline for your post.");
                     return;
                 }
 
@@ -911,7 +942,7 @@
 
         function saveDraftToSession() {
             let draftData = {};
-            const rawDraft = sessionStorage.getItem('delalaDraftPart1');
+            const rawDraft = sessionStorage.getItem(SESSION_KEY_2);
             if (rawDraft) {
                 try { draftData = JSON.parse(rawDraft); } catch (e) {}
             }
@@ -919,30 +950,25 @@
             const userPhone = localStorage.getItem('auth_session_phone') || localStorage.getItem('userPhone') || "";
             const userId = localStorage.getItem('auth_session_user_id') || localStorage.getItem('userId') || "";
 
-            const catSelect = document.getElementById('machineryCategorySelect');
-            const selectedCatText = catSelect?.options[catSelect.selectedIndex]?.text || "";
+            const checkedAmenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(cb => cb.value);
 
             draftData.rentalType = PAGE_CATEGORY;
             draftData.postedByPhone = userPhone;
             draftData.userId = userId;
+            draftData.guestHouseName = document.getElementById('guestHouseName').value.trim();
+            draftData.totalRooms = document.getElementById('totalRooms').value.trim();
+            draftData.roomTypes = document.getElementById('roomTypes').value;
+            draftData.minPrice = document.getElementById('minPrice').value.trim();
+            draftData.maxPrice = document.getElementById('maxPrice').value.trim();
+            draftData.amenities = checkedAmenities;
             draftData.title = document.getElementById('postTitle').value.trim();
-            draftData.price = Number(document.getElementById('rentalPrice').value) || 0;
-            draftData.paymentPeriod = document.getElementById('paymentPeriod').value;
-            draftData.body = document.getElementById('postContent').value.trim();
-            draftData.categorySpecificDetails = {
-                machineryCategory: selectedCatText,
-                machineryCategoryId: catSelect?.value || "",
-                machinerySubCategory: document.getElementById('machinerySubCategorySelect')?.value || "",
-                machineryModel: document.getElementById('machineryModel')?.value || "",
-                powerSource: document.getElementById('powerSource')?.value || ""
-            };
-            draftData.activeCategoryOnStep2 = PAGE_CATEGORY;
+            draftData.description = document.getElementById('postContent').value.trim();
 
-            sessionStorage.setItem('delalaDraftPart1', JSON.stringify(draftData));
+            sessionStorage.setItem(SESSION_KEY_2, JSON.stringify(draftData));
         }
 
         function restoreSavedDraft() {
-            const rawDraft = sessionStorage.getItem('delalaDraftPart1');
+            const rawDraft = sessionStorage.getItem(SESSION_KEY_2);
             if (!rawDraft) {
                 autoFillPlaceholders();
                 return;
@@ -950,31 +976,19 @@
 
             try {
                 let draft = JSON.parse(rawDraft);
-                document.getElementById('postTitle').value = draft.title || '';
-                document.getElementById('rentalPrice').value = draft.price || '';
-                if (draft.paymentPeriod) document.getElementById('paymentPeriod').value = draft.paymentPeriod;
-                document.getElementById('postContent').value = draft.body || '';
-
-                if (draft.categorySpecificDetails) {
-                    const c = draft.categorySpecificDetails;
-                    if (c.machineryCategoryId) {
-                        const catSelect = document.getElementById('machineryCategorySelect');
-                        if (catSelect) {
-                            catSelect.value = c.machineryCategoryId;
-                            catSelect.dispatchEvent(new Event('change'));
-                        }
-                    }
-                    if (c.machinerySubCategory && document.getElementById('machinerySubCategorySelect')) {
-                        document.getElementById('machinerySubCategorySelect').value = c.machinerySubCategory;
-                    }
-                    if (c.machineryModel && document.getElementById('machineryModel')) {
-                        document.getElementById('machineryModel').value = c.machineryModel;
-                    }
-                    if (c.powerSource && document.getElementById('powerSource')) {
-                        document.getElementById('powerSource').value = c.powerSource;
-                    }
+                if (draft.guestHouseName) document.getElementById('guestHouseName').value = draft.guestHouseName;
+                if (draft.totalRooms) document.getElementById('totalRooms').value = draft.totalRooms;
+                if (draft.roomTypes) document.getElementById('roomTypes').value = draft.roomTypes;
+                if (draft.minPrice) document.getElementById('minPrice').value = draft.minPrice;
+                if (draft.maxPrice) document.getElementById('maxPrice').value = draft.maxPrice;
+                if (draft.title) document.getElementById('postTitle').value = draft.title;
+                if (draft.description) document.getElementById('postContent').value = draft.description;
+                if (draft.amenities && Array.isArray(draft.amenities)) {
+                    const checkboxes = document.querySelectorAll('input[name="amenity"]');
+                    checkboxes.forEach(cb => {
+                        if (draft.amenities.includes(cb.value)) cb.checked = true;
+                    });
                 }
-
                 autoFillPlaceholders();
             } catch (err) {
                 console.error("Failed to restore draft", err);
@@ -986,11 +1000,11 @@
             const postContent = document.getElementById('postContent');
 
             if (!postTitle.value) {
-                postTitle.value = 'Heavy Machinery & Tools for Rent';
+                postTitle.value = 'Comfortable Guest House Rooms for Rent';
             }
 
             if (!postContent.value) {
-                postContent.value = `[Machinery Overview]: Well-serviced equipment ready for project site.\n\n[Terms]: Operator options and rental terms available upon request.`;
+                postContent.value = `[Guest House Features]: Clean, secure rooms with full amenities and high-speed Wi-Fi.\n\n[Booking Policy]: Daily and monthly rates available upon request.`;
             }
         }
 
