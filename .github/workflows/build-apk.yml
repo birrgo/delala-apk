@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  APP_VERSION_NAME: "1.0.4"
+  APP_VERSION_CODE: "4"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -55,13 +59,12 @@ jobs:
           
           npx cap add android
 
-      - name: Update App Version to 1.0.3
+      - name: Update App Version
         run: |
           BUILD_GRADLE="android/app/build.gradle"
-          # Update the internal version code (must be higher than 1)
-          sed -i 's/versionCode 1/versionCode 3/g' $BUILD_GRADLE
-          # Update the user-facing version name
-          sed -i 's/versionName "1.0"/versionName "1.0.3"/g' $BUILD_GRADLE
+          # Update the internal version code and version name using top-level environment variables
+          sed -i 's/versionCode [0-9]*/versionCode ${{ env.APP_VERSION_CODE }}/g' $BUILD_GRADLE
+          sed -i 's/versionName "[^"]*"/versionName "${{ env.APP_VERSION_NAME }}"/g' $BUILD_GRADLE
 
       - name: Generate App Icon from s.png
         run: |
