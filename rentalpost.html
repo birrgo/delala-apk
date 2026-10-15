@@ -478,7 +478,6 @@
     <script>
         const SESSION_KEY = 'delalaDraftPart1';
 
-        // Same Firebase config as Admin Page
         const firebaseConfig = {
             apiKey: "AIzaSyBXoIY6Q1Cf3Dw0jU5VImIqxchW79OME6Q",
             authDomain: "delala-1b582.firebaseapp.com",
@@ -645,14 +644,15 @@
             });
         }
 
-        /* Reads pricing from rules node: settings/category_prices */
+        /* Fixed: Correctly reads photo_count and photo_price from settings/category_prices */
         function fetchDatabasePhotoPrices() {
             const container = document.getElementById('photoPricingList');
             const currentCategory = document.getElementById('rentalType').value.trim().toLowerCase();
 
             db.ref('settings/category_prices').once('value', (snapshot) => {
                 let optionsMap = new Map();
-                optionsMap.set(1, 0); // Base default option: 1 photo is FREE
+                // Default fallback: 1 photo is FREE if no specific entry exists
+                optionsMap.set(1, 0);
 
                 if (snapshot.exists()) {
                     const records = snapshot.val();
@@ -660,14 +660,14 @@
                         const rec = records[key];
                         if (rec) {
                             const recCategory = (rec.category_key || rec.category || "").trim().toLowerCase();
-                            // Accepts exact category match, generic 'cat_1', or empty category key
-                            if (!recCategory || recCategory === 'cat_1' || !currentCategory || recCategory === currentCategory) {
-                                const limit = parseInt(rec.photo_count || rec.photo_limit || 0);
-                                const price = parseInt(rec.photo_price || 0);
+                            
+                            // Match rules where category matches or is configured in admin panel
+                            if (!currentCategory || recCategory === currentCategory) {
+                                const limit = parseInt(rec.photo_count || 0);
+                                const price = parseFloat(rec.photo_price || 0);
+                                
                                 if (limit > 0) {
-                                    if (!optionsMap.has(limit) || price < optionsMap.get(limit)) {
-                                        optionsMap.set(limit, price);
-                                    }
+                                    optionsMap.set(limit, price);
                                 }
                             }
                         }
@@ -711,7 +711,7 @@
             items.forEach(item => {
                 item.addEventListener('click', () => {
                     const limit = parseInt(item.getAttribute('data-limit'));
-                    const fee = parseInt(item.getAttribute('data-fee'));
+                    const fee = parseFloat(item.getAttribute('data-fee'));
 
                     if (uploadedPhotos.length > limit) {
                         return showErrorModal(`You have uploaded ${uploadedPhotos.length} photos. Please remove some photos before switching to a lower package limit.`);

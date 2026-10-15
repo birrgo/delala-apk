@@ -216,6 +216,31 @@
         window.activeItemTitle = "Check out this listing on Hulum";
         window.currentItemAuthorId = null;
 
+        /* --- APP DEEP LINKING / INTENT REDIRECT --- */
+        window.openInAppOrPlayStore = function() {
+            const currentUrl = window.location.href;
+            const playStoreUrl = "https://play.google.com/store/apps/details?id=com.hulum.app";
+            
+            // Check if mobile user
+            const isAndroid = /android/i.test(navigator.userAgent);
+            const isIOS = /ipad|iphone|ipod/.test(navigator.userAgent.toLowerCase());
+
+            if (isAndroid) {
+                // Construct custom intent to launch app with the specific URL payload
+                const intentUrl = `intent://${currentUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.hulum.app;end;`;
+                window.location.href = intentUrl;
+
+                // Fallback to Play Store if app is not installed
+                setTimeout(() => {
+                    window.location.href = playStoreUrl;
+                }, 2000);
+            } else if (isIOS) {
+                window.location.href = playStoreUrl;
+            } else {
+                window.location.href = playStoreUrl;
+            }
+        };
+
         /* --- UNIFIED POPUP NOTIFICATION CONTROLLER --- */
         window.showCustomAlert = function(title, message, icon = 'ℹ️') {
             const modal = document.getElementById('customAlertModal');
@@ -693,7 +718,7 @@
                     allImages.push(...Object.values(item.images));
                 }
             }
-            allImages = [...new Set(allImages)]; // Remove duplicates
+            allImages = [...new Set(allImages)];
 
             const postedByUserName = item.authorName || item.postedBy || item.userName || "Verified User";
             const postDate = item.createdAt ? new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recently';
@@ -745,7 +770,7 @@
             const isPostOwner = (item.userId === currentUserId || item.authorId === currentUserId);
             const canDeletePost = isPostOwner || isAdmin;
 
-            // Contact Info
+            // Contact Info Extraction from database
             const contact = item.contactInfo || {};
             const phone = contact.phone || item.phone || "";
             const telegram = contact.telegram || "";
@@ -793,6 +818,15 @@
             }
 
             readerBody.innerHTML = `
+                <!-- MOBILE APP BANNER PROMPT -->
+                <div style="background: linear-gradient(135deg, #081B38, #1E3A8A); color: #fff; padding: 14px 16px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.95rem;">📱 View inside Hulum App</div>
+                        <div style="font-size: 0.78rem; opacity: 0.85; margin-top: 2px;">Experience smoother browsing and faster contacts.</div>
+                    </div>
+                    <button onclick="window.openInAppOrPlayStore()" style="background: #10B981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">Open App</button>
+                </div>
+
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                     <span style="font-size:0.75rem; padding:4px 8px; background:#0F172A; color:#FFF; border-radius:6px; font-weight:700;">${category}</span>
                     <span style="font-size:0.75rem; color:#64748B;">👁️ <strong>${views}</strong> views</span>
@@ -844,7 +878,7 @@
                     ${city ? `<div class="info-term-item"><span class="info-term-label">City</span><span class="info-term-value">${city}</span></div>` : ''}
                     ${subcity ? `<div class="info-term-item"><span class="info-term-label">Subcity</span><span class="info-term-value">${subcity}</span></div>` : ''}
                     ${region ? `<div class="info-term-item"><span class="info-term-label">Region</span><span class="info-term-value">${region}</span></div>` : ''}
-                    ${lat && lng ? `<div class="info-term-item"><span class="info-term-label">GPS Coordinates</span><span class="info-term-value">${lat}, ${lng}</span></div>` : ''}
+                    ${lat && lng ? `<div class="info-term-item"><span class="info-term-label">GPS Coordinates</span><span class="info-term-value">${lat},${lng}</span></div>` : ''}
                     
                     <div class="info-term-item">
                         <span class="info-term-label" style="margin-bottom:6px;">Rate Article</span>
