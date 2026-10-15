@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  APP_VERSION_NAME: "1.0.4"
-  APP_VERSION_CODE: "4"
+  APP_VERSION_NAME: "1.0.5"
+  APP_VERSION_CODE: "5"
 
 jobs:
   build:
@@ -32,9 +32,13 @@ jobs:
           mkdir www
           rsync -a --exclude='.git' --exclude='.github' --exclude='www' ./ www/
 
-      - name: Inject CSS Fix for Header Overlap
+      - name: Inject CSS Fixes (Header Overlap & Enable Text Selection/Copy/Paste)
         run: |
-          find www -type f -name "*.html" -exec sed -i 's|</head>|<style>.nav-header { padding-top: 36px !important; padding-bottom: 8px !important; }</style></head>|g' {} +
+          find www -type f -name "*.html" -exec sed -i 's|</head>|<style>.nav-header { padding-top: 36px !important; padding-bottom: 8px !important; } *, body, input, textarea { -webkit-user-select: text !important; user-select: text !important; }</style></head>|g' {} +
+
+      - name: Prevent Autofill Popups on Inputs
+        run: |
+          find www -type f -name "*.html" -exec sed -i 's|<input|<input autocomplete="off" data-lpignore="true"|g' {} +
 
       - name: Install Android Packaging Tools & Plugins
         run: |
@@ -62,7 +66,6 @@ jobs:
       - name: Update App Version
         run: |
           BUILD_GRADLE="android/app/build.gradle"
-          # Update the internal version code and version name using top-level environment variables
           sed -i 's/versionCode [0-9]*/versionCode ${{ env.APP_VERSION_CODE }}/g' $BUILD_GRADLE
           sed -i 's/versionName "[^"]*"/versionName "${{ env.APP_VERSION_NAME }}"/g' $BUILD_GRADLE
 
