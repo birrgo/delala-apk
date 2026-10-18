@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  APP_VERSION_NAME: "1.0.6"
-  APP_VERSION_CODE: "6"
+  APP_VERSION_NAME: "1.0.7"
+  APP_VERSION_CODE: "7"
 
 jobs:
   build:
@@ -34,7 +34,7 @@ jobs:
 
       - name: Inject CSS Fixes (Header Overlap & Enable Text Selection/Copy/Paste)
         run: |
-          find www -type f -name "*.html" -exec sed -i 's|</head>|<style>.nav-header { padding-top: 36px !important; padding-bottom: 8px !important; } *, body, input, textarea { -webkit-user-select: text !important; user-select: text !important; background-color: transparent !important; }</style></head>|g' {} +
+          find www -type f -name "*.html" -exec sed -i 's|</head>|<style>.nav-header { padding-top: 36px !important; padding-bottom: 8px !important; } *, body, input, textarea { -webkit-user-select: text !important; user-select: text !important; }</style></head>|g' {} +
 
       - name: Prevent Autofill Popups on Inputs
         run: |
@@ -52,7 +52,6 @@ jobs:
             "appId": "com.hulum.app",
             "appName": "hulum Gebeya",
             "webDir": "www",
-            "backgroundColor": "#ffffff",
             "plugins": {
               "StatusBar": {
                 "overlaysWebView": false,
@@ -105,7 +104,7 @@ jobs:
               </style>
 
               <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-                  <item name="android:background">@drawable/splash</item>
+                  <item name="android:background">@android:color/white</item>
               </style>
           </resources>
           EOF
