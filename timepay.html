@@ -297,11 +297,12 @@
             if (rawDraft) {
                 try {
                     const draftData = JSON.parse(rawDraft);
-                    selectedPhotoCount = draftData.imageCount || (draftData.images ? draftData.images.length : 0);
+                    const imagesArr = Array.isArray(draftData.images) ? draftData.images : [];
+                    selectedPhotoCount = draftData.imageCount !== undefined ? Number(draftData.imageCount) : imagesArr.length;
                     photoFeePrice = Number(draftData.photoFee || 0);
                     return {
                         category: draftData.rentalType || '',
-                        images: draftData.images || [],
+                        images: imagesArr,
                         imageCount: selectedPhotoCount,
                         photoFee: photoFeePrice
                     };
@@ -328,7 +329,7 @@
             targetCategory = String(targetCategory).trim();
             
             const displayCatName = categoryDisplayNames[targetCategory] || targetCategory;
-            document.getElementById('catNameText').innerText = `Category: ${displayCatName} (${selectedPhotoCount} Photos Selected)`;
+            document.getElementById('catNameText').innerText = `Category: ${displayCatName} (${draftInfo.imageCount} Photos Selected)`;
             
             fetchPrices(targetCategory, draftInfo);
         }
@@ -347,14 +348,15 @@
                     Object.values(data).forEach(item => {
                         if (!item || typeof item !== 'object') return;
 
-                        let itemCatKey = String(item.category_key || '').trim();
+                        let itemCatKey = String(item.category_key || '').trim().toLowerCase();
+                        let searchCat = targetCategory.toLowerCase();
 
-                        if (itemCatKey.toLowerCase() === targetCategory.toLowerCase()) {
+                        // Exact match or fallback partial match for Event Equipment
+                        if (itemCatKey === searchCat || (searchCat.includes('event') && itemCatKey.includes('event'))) {
                             let durVal = item.duration_value;
                             let durUnit = item.duration_unit;
                             let durPrice = Number(item.duration_price || 0);
 
-                            // Exclude items with 0 or negative duration price
                             if (durPrice > 0) {
                                 let key = normalizeDurationKey(durVal, durUnit);
                                 extractedPrices.push({
@@ -396,7 +398,7 @@
                     <div class="period-info">
                         <span class="period-name">${opt.label}</span>
                         <span class="period-line">Duration Price: ${opt.durationPrice.toLocaleString()} ETB</span>
-                        <span class="period-line">Photo Fee (${selectedPhotoCount} photos): ${draftInfo.photoFee.toLocaleString()} ETB</span>
+                        <span class="period-line">Photo Fee (${draftInfo.imageCount} photos): ${draftInfo.photoFee.toLocaleString()} ETB</span>
                         <span class="period-total-line">Total Amount = ${totalPrice.toLocaleString()} ETB</span>
                     </div>
                     <div class="period-price">
