@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  APP_VERSION_NAME: "1.0.8"
-  APP_VERSION_CODE: "8"
+  APP_VERSION_NAME: "1.0.9"
+  APP_VERSION_CODE: "9"
 
 jobs:
   build:
